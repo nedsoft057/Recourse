@@ -36,12 +36,12 @@ const ids = {
   buyers: [`buyer-a.${M}`, `buyer-b.${M}`],
 };
 const funding = {
-  [ids.recourse]: "4.5",
-  [ids.token]: "2",
-  [ids.judge]: "0.3",
-  [ids.relayer]: "0.3",
-  ...Object.fromEntries(ids.shops.map((s) => [s, "0.6"])),
-  ...Object.fromEntries(ids.buyers.map((b) => [b, "0.3"])),
+  [ids.recourse]: "3.8",
+  [ids.token]: "1.8",
+  [ids.judge]: "0.1",
+  [ids.relayer]: "0.1",
+  ...Object.fromEntries(ids.shops.map((s) => [s, "0.35"])),
+  ...Object.fromEntries(ids.buyers.map((b) => [b, "0.1"])),
 };
 const shopNames = {
   [ids.shops[0]]: "Atelier Ama",
@@ -158,7 +158,7 @@ for (const b of ids.buyers) {
 // 6. Demo sellers: register and approve.
 for (const s of ids.shops) {
   const m = await view(ids.recourse, "get_merchant", { account_id: s });
-  if (!m) await call(s, ids.recourse, "register_merchant", { name: shopNames[s] }, "0.3");
+  if (!m) await call(s, ids.recourse, "register_merchant", { name: shopNames[s] }, "0.2");
   const after = await view(ids.recourse, "get_merchant", { account_id: s });
   if (after.merchant.status !== "Approved") await call(M, ids.recourse, "approve_merchant", { account_id: s });
 }
