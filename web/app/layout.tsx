@@ -34,7 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
           <p className="footer-note">
-          <p>
             A working demo on NEAR testnet, built for NEAR HACKATHON. Payments use test USDC and every action is a real
             testnet transaction, signed for one of the demo people chosen at the top.
           </p>
