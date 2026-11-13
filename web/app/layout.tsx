@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Header } from "@/components/Header";
+import { DemoGuide } from "@/components/DemoGuide";
+import { currentPerson } from "@/lib/identity";
 import { CONTRACT, EXPLORER } from "@/lib/chain";
 import "./globals.css";
 
@@ -13,12 +15,14 @@ export const metadata: Metadata = {
     "Make a protected payment link for anything you sell. Buyers pay in USDC; part is held in their receipt until the order is right.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const me = await currentPerson();
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
       <body>
         <Header />
         <main>{children}</main>
+        <DemoGuide current={me.key} />
         <footer className="site-footer">
           <div className="footer-inner">
             <div>

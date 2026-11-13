@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { tourEmit } from "@/lib/tour";
 import { Seal } from "@/components/Seal";
 
 const fmt = (raw: string) => {
@@ -40,6 +41,7 @@ export function BuyPanel(props: {
     }
     setReceipt(data);
     setState("done");
+    tourEmit("buy", { token: String(data.token_id) });
   }
 
   if (state === "done" && receipt) {

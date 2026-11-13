@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DEMO_TEXT, readTour, tourEmit } from "@/lib/tour";
 import { Seal } from "@/components/Seal";
 import { Thumb } from "@/components/Thumb";
 
@@ -25,6 +26,15 @@ export function CreateForm({ sellerName, lockBps, tier }: { sellerName: string; 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (readTour()?.step === 0) {
+      setTitle(DEMO_TEXT.link.title);
+      setPrice(DEMO_TEXT.link.price);
+      setDescription(DEMO_TEXT.link.description);
+      setWindowIdx(0);
+    }
+  }, []);
+
   const priceNum = Number(price) || 0;
   const held = Math.floor(priceNum * lockBps) / 10_000;
   const win = WINDOWS[windowIdx];
@@ -44,6 +54,7 @@ export function CreateForm({ sellerName, lockBps, tier }: { sellerName: string; 
       setBusy(false);
       return;
     }
+    tourEmit("link", { id: String(data.id) });
     router.push(`/p/${data.id}/ready`);
   }
 

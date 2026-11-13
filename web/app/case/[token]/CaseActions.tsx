@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DEMO_TEXT, readTour, tourEmit } from "@/lib/tour";
 
 export type CaseMode =
   | { kind: "none" }
@@ -35,6 +36,15 @@ export function CaseActions({
   const [photo, setPhoto] = useState("");
   const [bps, setBps] = useState(10_000);
 
+  useEffect(() => {
+    const step = readTour()?.step;
+    if (step === 4 && mode.kind === "claim") {
+      setReason("damaged");
+      setStatement(DEMO_TEXT.claim);
+    }
+    if (step === 5 && mode.kind === "respond") setStatement(DEMO_TEXT.respond);
+  }, [mode.kind]);
+
   async function send(action: string, extra: object = {}) {
     setBusy(true);
     setError("");
@@ -48,6 +58,8 @@ export function CaseActions({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "That didn't go through.");
       if (data.judged?.outcome) setResult(data.judged.outcome);
+      if (action === "open_claim") tourEmit("claim");
+      if (action === "respond") tourEmit("respond");
       router.refresh();
     } catch (e) {
       setError((e as Error).message);

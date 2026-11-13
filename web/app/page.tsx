@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StartDemo } from "@/components/StartDemo";
 import { Seal } from "@/components/Seal";
 
 function Icon({ d }: { d: string }) {
@@ -54,8 +55,8 @@ export default function Landing() {
           <h1>Crypto payments, now with a chargeback.</h1>
           <p>Make a protected payment link for anything you sell. Your buyer pays in USDC; part of it is held in their receipt until the order is right.</p>
           <div className="hero-actions">
-            <Link className="pill-btn white" href="/new">Create a protected link</Link>
-            <Link className="pill-btn dark" href="/p/1">Try a sample checkout</Link>
+            <StartDemo className="pill-btn dark" />
+            <Link className="pill-btn white" href="/case/6">See a decided case</Link>
           </div>
         </div>
 
@@ -190,7 +191,8 @@ export default function Landing() {
       <section className="cta wrap">
         <h2>Sell to anyone. Protect everyone.</h2>
         <div className="hero-actions">
-          <Link className="pill-btn dark" href="/new">Create your first link</Link>
+          <StartDemo className="pill-btn dark" />
+          <Link className="pill-btn white" href="/new">Create your first link</Link>
         </div>
       </section>
     </>

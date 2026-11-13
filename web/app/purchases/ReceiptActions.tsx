@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { tourEmit } from "@/lib/tour";
 
 async function post(body: object) {
   const res = await fetch("/api/act", {
@@ -70,6 +71,7 @@ export function ReceiptActions({
       await post({ action: "pass_on", token_id: tokenId, to });
       const name = others.find((o) => o.key === to)?.name;
       setDone(`Passed on to ${name}. The protection went with it.`);
+      tourEmit("pass_on");
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
