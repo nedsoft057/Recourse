@@ -61,7 +61,10 @@ async function callModel(caseText: string): Promise<Run> {
   const key = process.env.NEARAI_API_KEY;
   if (!key) return { ok: false, error: "no NEAR AI Cloud key configured" };
   let lastError = "";
+  const started = Date.now();
   for (let attempt = 0; attempt < 2; attempt++) {
+    // The whole judge must fit in one 60 s request: retry only if there's time.
+    if (attempt > 0 && Date.now() - started > 15_000) break;
     try {
       const res = await fetch(`${API}/chat/completions`, {
         method: "POST",
@@ -69,12 +72,13 @@ async function callModel(caseText: string): Promise<Run> {
         body: JSON.stringify({
           model: JUDGE_MODEL,
           temperature: 0,
+          max_tokens: 600,
           messages: [
             { role: "system", content: POLICY },
             { role: "user", content: caseText },
           ],
         }),
-        signal: AbortSignal.timeout(25_000),
+        signal: AbortSignal.timeout(attempt === 0 ? 42_000 : 20_000),
       });
       if (!res.ok) {
         lastError = `NEAR AI Cloud returned HTTP ${res.status}`;
@@ -82,8 +86,18 @@ async function callModel(caseText: string): Promise<Run> {
       }
       const data = await res.json();
       const text: string = data.choices?.[0]?.message?.content || "";
-      const match = text.match(/\{[\s\S]*\}/);
-      const ruling = match ? validate(JSON.parse(match[0])) : null;
+      // Take the last JSON object that has a decision (reasoning models may think aloud first).
+      const visible = text.replace(/<think>[\s\S]*?<\/think>/g, "");
+      const start = visible.lastIndexOf("{", visible.lastIndexOf('"decision"'));
+      const end = visible.lastIndexOf("}");
+      let ruling: AiRuling | null = null;
+      if (start >= 0 && end > start) {
+        try {
+          ruling = validate(JSON.parse(visible.slice(start, end + 1)));
+        } catch {
+          ruling = null;
+        }
+      }
       if (!ruling) {
         lastError = "the answer didn't match the ruling format";
         continue;
@@ -100,7 +114,7 @@ async function fetchSignature(chatId: string) {
   try {
     const res = await fetch(
       `${API}/signature/${encodeURIComponent(chatId)}?model=${encodeURIComponent(JUDGE_MODEL)}&signing_algo=ecdsa`,
-      { headers: { Authorization: `Bearer ${process.env.NEARAI_API_KEY}` }, signal: AbortSignal.timeout(10_000) }
+      { headers: { Authorization: `Bearer ${process.env.NEARAI_API_KEY}` }, signal: AbortSignal.timeout(6_000) }
     );
     if (!res.ok) return null;
     const s = await res.json();

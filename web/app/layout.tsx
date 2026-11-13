@@ -19,20 +19,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Header />
         <main>{children}</main>
-        <footer className="footer">
+        <footer className="site-footer">
+          <div className="footer-inner">
+            <div>
+              <p className="footer-brand">Recourse</p>
+              <p className="muted small">Buyer protection for stablecoin payments.</p>
+            </div>
+            <nav className="footer-links" aria-label="Footer">
+              <a href="/new">Create a link</a>
+              <a href="/sell">Seller desk</a>
+              <a href="/purchases">Purchases</a>
+              <a href={`${EXPLORER}/address/${CONTRACT}`} target="_blank" rel="noreferrer">Contract on NearBlocks</a>
+              <a href="https://github.com/nedsoft057/recourse" target="_blank" rel="noreferrer">Source on GitHub</a>
+            </nav>
+          </div>
+          <p className="footer-note">
           <p>
-            Recourse is a working demo on NEAR testnet, built for NEAR HACKATHON. Payments use test USDC and every
-            action is a real testnet transaction, signed for one of the demo people chosen at the top.
+            A working demo on NEAR testnet, built for NEAR HACKATHON. Payments use test USDC and every action is a real
+            testnet transaction, signed for one of the demo people chosen at the top.
           </p>
-          <p>
-            <a href={`${EXPLORER}/address/${CONTRACT}`} target="_blank" rel="noreferrer">
-              View the contract on NearBlocks
-            </a>
-            {"  "}
-            <a href="https://github.com/nedsoft057/recourse" target="_blank" rel="noreferrer">
-              Source on GitHub
-            </a>
-          </p>
+          <div className="giant-word" aria-hidden="true">RECOURSE</div>
         </footer>
       </body>
     </html>
