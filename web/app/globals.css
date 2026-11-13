@@ -552,3 +552,61 @@ h1, h2, h3 { font-family: var(--sans); font-weight: 600; letter-spacing: -0.035e
   .feature.flip .feature-text { order: 0; }
   .footer-links { grid-template-columns: 1fr 1fr; }
 }
+
+/* ================================================================
+   Theme v5: photographic sky with 3D objects on clouds.
+   ================================================================ */
+.cloud-hero {
+  background: #f5f6f7 url("/sky/hero-sky.jpg") center top / cover no-repeat;
+  padding-bottom: 5rem;
+}
+.cloud-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(43, 140, 230, 0.15) 0%, rgba(43, 140, 230, 0) 40%, rgba(245, 246, 247, 0) 70%, #f5f6f7 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.clouds { display: none; }
+.cloud-bank {
+  height: 260px;
+  background:
+    radial-gradient(28% 55% at 12% 65%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(30% 65% at 50% 75%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(28% 55% at 86% 65%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, rgba(245, 246, 247, 0) 0%, #f5f6f7 80%);
+}
+.sky-objects { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.obj { position: absolute; height: auto; filter: drop-shadow(0 24px 30px rgba(20, 70, 140, 0.25)); }
+.o-bag { width: clamp(90px, 11vw, 150px); left: 7%; top: 300px; }
+.o-shield { width: clamp(80px, 9vw, 130px); right: 8%; top: 270px; }
+.o-parcel { width: clamp(80px, 9vw, 125px); right: 16%; top: 640px; }
+@media (prefers-reduced-motion: no-preference) {
+  .obj { animation: drift 7s ease-in-out infinite; }
+  .o-shield { animation-delay: -2.3s; }
+  .o-parcel { animation-delay: -4.6s; }
+}
+@keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.phone { box-shadow: 0 50px 90px -30px rgba(10, 50, 110, 0.55), inset 0 0 0 2px #2a2d33; }
+.ph-photo { width: 100%; height: 200px; object-fit: cover; display: block; }
+.mini-thumb { object-fit: cover; }
+
+.site-footer { background: #f5f6f7 url("/sky/footer-clouds.jpg") center bottom / cover no-repeat; }
+.site-footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #f5f6f7 0%, rgba(245, 246, 247, 0.85) 35%, rgba(245, 246, 247, 0) 75%);
+  pointer-events: none;
+}
+.site-footer > * { position: relative; z-index: 1; }
+.giant-word { color: rgba(255, 255, 255, 0.85); text-shadow: 0 2px 30px rgba(120, 170, 230, 0.35); }
+
+@media (max-width: 760px) {
+  .cloud-hero { background-image: url("/sky/hero-sky-sm.jpg"); }
+  .o-bag { left: -10px; top: 520px; }
+  .o-shield { right: -6px; top: 380px; }
+  .o-parcel { right: 6%; top: 900px; }
+}

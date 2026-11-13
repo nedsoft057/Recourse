@@ -44,8 +44,10 @@ export default function Landing() {
   return (
     <>
       <section className="cloud-hero">
-        <div className="clouds" aria-hidden="true">
-          <i className="c1" /><i className="c2" /><i className="c3" /><i className="c4" /><i className="c5" /><i className="c6" />
+        <div className="sky-objects" aria-hidden="true">
+          <img className="obj o-bag" src="/sky/bag.webp" alt="" />
+          <img className="obj o-shield" src="/sky/shield.webp" alt="" />
+          <img className="obj o-parcel" src="/sky/parcel.webp" alt="" />
         </div>
         <div className="cloud-hero-text">
           <span className="glass-pill">Live on NEAR testnet, with an AI dispute judge</span>
@@ -73,7 +75,7 @@ export default function Landing() {
 
           <div className="phone" role="img" aria-label="The Recourse checkout on a phone">
             <div className="phone-screen">
-              <div className="ph-photo" />
+              <img className="ph-photo" src="/products/market-tote.jpg" alt="" />
               <div className="ph-body">
                 <span className="ph-seller">Sold by Atelier Ama</span>
                 <span className="ph-title">Market tote</span>
@@ -130,7 +132,7 @@ export default function Landing() {
           </div>
           <div className="feature-art tint-green">
             <div className="mini-card">
-              <span className="mini-row"><span className="mini-thumb" /><span><b>Market tote</b><small>Receipt #12</small></span></span>
+              <span className="mini-row"><img className="mini-thumb" src="/products/market-tote.jpg" alt="" /><span><b>Market tote</b><small>Receipt #12</small></span></span>
               <span className="mini-status"><Seal size={14} /> 60 USDC held, 5 days left</span>
               <span className="mini-label">Pass the receipt on to</span>
               <span className="mini-input">Bayo</span>
