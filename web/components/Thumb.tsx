@@ -1,5 +1,7 @@
 "use client";
 
+import { stockPhoto } from "@/lib/stock";
+
 import { useState } from "react";
 
 // Warm, product-like gradients for links without a photo, picked from the title.
@@ -39,9 +41,4 @@ export function Thumb({
       )}
     </div>
   );
-}
-
-/** Links made without a photo still get a real one when we have a match. */
-function stockPhoto(title: string): string | null {
-  return /tote|bag|leather|purse/i.test(title) ? "/products/market-tote.jpg" : null;
 }

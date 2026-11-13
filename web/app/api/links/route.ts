@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { act, cleanError } from "@/lib/chain";
+import { stockPhoto } from "@/lib/stock";
 import { ensureStorage } from "@/lib/storage";
 import { accountOf, currentPerson } from "@/lib/identity";
 
@@ -18,9 +19,7 @@ export async function POST(req: Request) {
   // checkout and the receipt NFT both show the product.
   const image = body.image
     ? String(body.image).trim()
-    : /tote|bag|leather|purse/i.test(String(body.title || ""))
-      ? "/products/market-tote.jpg"
-      : null;
+    : stockPhoto(String(body.title || ""));
   const price = String(body.price || "").trim();
   const window = Number(body.claim_window_ms);
 
