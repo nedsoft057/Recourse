@@ -426,6 +426,15 @@ impl Recourse {
         m.storage_balance = U128(m.storage_balance.0 + attached);
     }
 
+    /// Anyone can top up a merchant's prepaid storage (e.g. a platform
+    /// sponsoring its sellers). It only adds funds; it changes nothing else.
+    #[payable]
+    pub fn add_storage_for(&mut self, account_id: AccountId) {
+        let attached = env::attached_deposit().as_yoctonear();
+        let m = self.merchants.get_mut(&account_id).expect("Merchant not found");
+        m.storage_balance = U128(m.storage_balance.0 + attached);
+    }
+
     /// Raise the minimum share locked on future sales. Values below the
     /// merchant's tier rate have no effect: the higher of the two applies.
     pub fn set_min_lock_bps(&mut self, bps: u16) {

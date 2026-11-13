@@ -1,112 +1,81 @@
 import Link from "next/link";
-import { view, MASTER } from "@/lib/chain";
-import { makers, products, productForImage, type MakerKey } from "@/lib/catalog";
-import { usdc, pct, tierWords, recordLine } from "@/lib/format";
-import type { ListingView, MerchantView } from "@/lib/types";
-import { ProductImage } from "@/components/ProductImage";
 import { Seal } from "@/components/Seal";
 
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  let listings: ListingView[] = [];
-  let merchants: Record<string, MerchantView | null> = {};
-  let failed = false;
-  try {
-    listings = (await view<ListingView[]>("get_listings", { from_index: 0, limit: 100 })).filter(
-      (l) => l.listing.active
-    );
-    const keys = Object.keys(makers) as MakerKey[];
-    const views = await Promise.all(
-      keys.map((k) => view<MerchantView | null>("get_merchant", { account_id: `${k}.${MASTER}` }))
-    );
-    merchants = Object.fromEntries(keys.map((k, i) => [k, views[i]]));
-  } catch {
-    failed = true;
-  }
-
-  const featured = products.find((p) => p.slug === "indigo-throw")!;
-  const featuredListing = listings.find((l) => productForImage(l.listing.image)?.slug === featured.slug);
-
+export default function Landing() {
   return (
     <>
-      <section className="spread">
-        <div>
-          <ProductImage slug={featured.slug} tone={featured.tone} alt={featured.title} className="spread-image" eager />
-          <p className="caption">
-            {featured.title} by {makers.loomhouse.name}, woven in {makers.loomhouse.place}.
-          </p>
+      <section className="hero landing-hero">
+        <span className="chip"><b />Live on NEAR testnet</span>
+        <h1>Crypto payments, now with a chargeback.</h1>
+        <p className="sub">
+          Make a protected payment link for anything you sell on WhatsApp, Instagram or face to face. Your buyer pays in
+          USDC. Part reaches you right away; the rest is held in their receipt until the order is right.
+        </p>
+        <div className="hero-actions">
+          <Link className="button" href="/new">Create a protected link</Link>
+          <Link className="button ghost" href="/p/1">Try a sample checkout</Link>
         </div>
-        <div className="spread-text">
-          <h1>Things made by hand, paid for with a receipt that has your back.</h1>
-          <p className="spread-lead">
-            Every order here comes with a receipt that holds part of your payment until the order is right.
-          </p>
+      </section>
+
+      <div className="wrap">
+        <section className="section" aria-labelledby="how">
+          <div className="section-head">
+            <h2 id="how">How a protected payment works</h2>
+            <p className="muted">No escrow agent, no platform holding your money. A NEAR contract follows the rules for both sides.</p>
+          </div>
           <ol className="steps">
-            <li>You pay the price in USDC. Nothing extra.</li>
-            <li>Part goes to the maker now. The rest is held in your receipt.</li>
-            <li>When the claim window closes, the maker gets the rest. If something is wrong, you claim it back.</li>
+            <li className="card">
+              <h3>You make a link</h3>
+              <p className="muted">Item, price, how long the buyer can claim. Share it anywhere, or show the QR code in person.</p>
+            </li>
+            <li className="card">
+              <h3>Your buyer pays</h3>
+              <p className="muted">In USDC on NEAR, or from Base, Solana and other chains. They get a receipt that holds part of the payment.</p>
+            </li>
+            <li className="card">
+              <h3>The window closes</h3>
+              <p className="muted">No claim, and the held part comes to you. If the order went wrong, the buyer claims it back.</p>
+            </li>
           </ol>
-          <p className="protect-line">
-            <Seal />
-            Sell the item on, and the protection goes with the receipt.
-          </p>
-          {featuredListing && (
-            <Link className="button" href={`/product/${featuredListing.id}`} style={{ justifySelf: "start" }}>
-              See the {featured.title.toLowerCase()}
-            </Link>
-          )}
-        </div>
-      </section>
+        </section>
 
-      <section className="makers" aria-label="Makers">
-        {(Object.keys(makers) as MakerKey[]).map((k) => {
-          const m = makers[k];
-          const v = merchants[k];
-          return (
-            <article className="maker" key={k}>
-              <h3>{m.name}</h3>
-              <p className="muted small">{m.place}</p>
-              <p>{m.craft}</p>
-              {v && (
-                <p className="maker-record">
-                  {tierWords[v.tier]}. {recordLine(v.merchant.finished, v.merchant.lost)}.
-                </p>
-              )}
-            </article>
-          );
-        })}
-      </section>
+        <section className="section split-section" aria-label="What makes it different">
+          <div className="dark-card">
+            <Seal size={28} />
+            <h3>Protection that travels with the item</h3>
+            <p>
+              The receipt is an NFT the buyer holds. Sell the item on, pass the receipt with it, and the new owner keeps
+              whatever protection is left. Card chargebacks can't do that.
+            </p>
+          </div>
+          <div className="card" style={{ padding: "1.6rem", display: "grid", gap: "0.9rem", alignContent: "start" }}>
+            <h3 style={{ fontSize: "1.8rem", lineHeight: 1.05 }}>A seller record that pays off</h3>
+            <p className="muted">The share held for the buyer depends on the seller's history, worked out on-chain.</p>
+            <table className="tiers">
+              <thead>
+                <tr><th scope="col">Seller</th><th scope="col">Record</th><th scope="col" className="num">Held</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>New</td><td className="muted">Under 5 completed orders</td><td className="num">50%</td></tr>
+                <tr><td>Established</td><td className="muted">5 or more</td><td className="num">30%</td></tr>
+                <tr><td>Trusted</td><td className="muted">20+, under 5% lost claims</td><td className="num">15%</td></tr>
+                <tr><td>Under review</td><td className="muted">3+ lost claims, 20% or more</td><td className="num">100%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-      <section aria-labelledby="objects-title">
-        <div className="objects-head">
-          <h2 id="objects-title">The collection</h2>
-          <p className="muted small">{listings.length} pieces from three makers</p>
-        </div>
-        {failed && (
-          <p className="notice">The shop couldn't reach NEAR testnet just now. Refresh in a moment.</p>
-        )}
-        <div className="objects">
-          {listings.map((l) => {
-            const p = productForImage(l.listing.image);
-            if (!p) return null;
-            return (
-              <Link className="object" href={`/product/${l.id}`} key={l.id}>
-                <ProductImage slug={p.slug} tone={p.tone} alt={p.title} />
-                <div className="object-meta">
-                  <span className="object-title">{p.title}</span>
-                  <span className="object-price">{usdc(l.listing.price)} USDC</span>
-                </div>
-                <span className="muted small">{l.merchant_name}</span>
-                <span className="protect-line">
-                  <Seal size={15} />
-                  {pct(l.lock_bps)} held for you until the order is right
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+        <section className="section" aria-labelledby="disputes" style={{ paddingBottom: "4rem" }}>
+          <div className="section-head">
+            <h2 id="disputes">When something goes wrong</h2>
+            <p className="muted">
+              The buyer opens a claim, the seller answers, and an AI judge running in a secure enclave rules on the
+              evidence. Money stays locked while either side can appeal, and a person reviews anything the AI can't decide.
+            </p>
+          </div>
+          <Link className="button dark" href="/new">Create your first link</Link>
+        </section>
+      </div>
     </>
   );
 }

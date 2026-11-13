@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { Newsreader, Hanken_Grotesk } from "next/font/google";
+import { Instrument_Serif, Inter_Tight } from "next/font/google";
 import { Header } from "@/components/Header";
 import { CONTRACT, EXPLORER } from "@/lib/chain";
 import "./globals.css";
 
-const serif = Newsreader({
+const serif = Instrument_Serif({
   subsets: ["latin"],
+  weight: "400",
   style: ["normal", "italic"],
   variable: "--font-serif",
   display: "swap",
 });
-const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const sans = Inter_Tight({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Recourse Market",
+  title: "Recourse: protected payment links",
   description:
-    "Handmade goods from independent makers. Every order comes with a receipt that holds part of your payment until the order is right.",
+    "Make a protected payment link for anything you sell. Buyers pay in USDC; part is held in their receipt until the order is right.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -26,8 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main>{children}</main>
         <footer className="footer">
           <p>
-            Recourse Market is a working demo on NEAR testnet, built for NEAR HACKATHON. Prices are in test USDC
-            and every purchase is a real testnet transaction.
+            Recourse is a working demo on NEAR testnet, built for NEAR HACKATHON. Payments use test USDC and every
+            action is a real testnet transaction, signed for one of the demo people chosen at the top.
           </p>
           <p>
             <a href={`${EXPLORER}/address/${CONTRACT}`} target="_blank" rel="noreferrer">

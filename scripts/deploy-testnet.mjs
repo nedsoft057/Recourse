@@ -163,6 +163,14 @@ for (const s of ids.shops) {
   if (after.merchant.status !== "Approved") await call(M, ids.recourse, "approve_merchant", { account_id: s });
 }
 
+// 6b. Keep each demo seller's prepaid storage topped up (sponsored by the master account).
+for (const s of ids.shops) {
+  const m = await view(ids.recourse, "get_merchant", { account_id: s });
+  if (BigInt(m.merchant.storage_balance) < near("0.15")) {
+    await call(M, ids.recourse, "add_storage_for", { account_id: s }, "0.25");
+  }
+}
+
 // 7. Demo catalogue: one listing per product, created by its maker.
 const catalog = JSON.parse(fs.readFileSync("web/data/products.json", "utf8"));
 const existing = await view(ids.recourse, "get_listings", { from_index: 0, limit: 100 });

@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { view } from "@/lib/chain";
 import { accountOf, currentPerson, PEOPLE, personByAccount } from "@/lib/identity";
-import { productForImage } from "@/lib/catalog";
 import { usdc } from "@/lib/format";
 import { statusFor } from "@/lib/status";
 import type { ReceiptView, ListingView } from "@/lib/types";
-import { ProductImage } from "@/components/ProductImage";
+import { Thumb } from "@/components/Thumb";
 import { When, Countdown } from "@/components/When";
 import { Seal } from "@/components/Seal";
 import { ReceiptActions, WithdrawButton } from "./ReceiptActions";
@@ -16,9 +15,11 @@ export default async function Purchases() {
   const me = await currentPerson();
   if (me.role !== "buyer") {
     return (
-      <div className="empty">
-        <h1 style={{ fontSize: "var(--t-h2)" }}>Purchases</h1>
-        <p className="muted">You're viewing as {me.name}, a seller. Switch to Ada or Bayo at the top to see a buyer's receipts.</p>
+      <div className="wrap">
+        <div className="desk-head"><h1>Purchases</h1></div>
+        <div className="empty">
+          <p className="muted">You're viewing as {me.name}, a seller. Switch to Ada or Bayo at the top to see a buyer's receipts.</p>
+        </div>
       </div>
     );
   }
@@ -41,15 +42,15 @@ export default async function Purchases() {
   const now = Date.now();
 
   return (
-    <>
-      <div className="page-head">
-        <h1 style={{ fontSize: "var(--t-h2)" }}>{me.name}'s purchases</h1>
+    <div className="wrap">
+      <div className="desk-head">
+        <h1>{me.name}'s purchases</h1>
         <p className="muted">
           Each receipt holds part of what you paid until its claim window closes. Refunds land in your balance below.
         </p>
       </div>
 
-      <div className="balance-bar">
+      <div className="card balance-bar">
         <div>
           <p className="muted small">Ready to withdraw</p>
           <p className="balance-amount">{usdc(balance)} USDC</p>
@@ -59,24 +60,23 @@ export default async function Purchases() {
 
       {receipts.length === 0 ? (
         <div className="empty">
-          <p>No purchases yet.</p>
-          <Link className="button" href="/">Browse the collection</Link>
+          <p>No purchases yet. Open a protected link from a seller to buy something.</p>
+          <Link className="button" href="/p/1">Try a sample checkout</Link>
         </div>
       ) : (
         <div className="receipts">
           {receipts.map((r) => {
             const e = r.escrow;
-            const p = productForImage(imageFor(e.listing_id));
             const s = statusFor(e, now);
             const boughtBy = personByAccount(e.original_buyer);
             const resold = e.original_buyer !== account;
             return (
-              <article className="receipt" key={r.token_id}>
-                {p ? <ProductImage slug={p.slug} tone={p.tone} alt={p.title} /> : <div />}
+              <article className="card receipt" key={r.token_id}>
+                <Thumb image={imageFor(e.listing_id)} title={r.listing_title} />
                 <div className="receipt-body">
-                  <h3 style={{ fontSize: "1.25rem" }}>{r.listing_title}</h3>
+                  <h3>{r.listing_title}</h3>
                   <p className={`receipt-status ${s.held ? "held" : ""}`}>
-                    {s.held && <Seal size={15} />} {s.title}
+                    {s.held && <Seal size={16} on="light" />} {s.title}
                   </p>
                   <ul className="timeline">
                     <li>
@@ -106,6 +106,6 @@ export default async function Purchases() {
           })}
         </div>
       )}
-    </>
+    </div>
   );
 }
