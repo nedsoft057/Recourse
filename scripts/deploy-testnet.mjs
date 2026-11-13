@@ -171,6 +171,22 @@ for (const s of ids.shops) {
   }
 }
 
+// 6c. Keep demo people able to pay gas: NEAR checks prepaid gas against the balance.
+async function available(id) {
+  const b = await (await acct(id)).getAccountBalance();
+  return BigInt(b.available);
+}
+for (const [id, min, top] of [
+  ...ids.buyers.map((b) => [b, "0.3", "0.5"]),
+  ...ids.shops.map((s) => [s, "0.12", "0.2"]),
+  [ids.judge, "0.08", "0.15"],
+]) {
+  if ((await available(id)) < near(min)) {
+    await master.sendMoney(id, near(top));
+    console.log(`  topped up ${id} with ${top} NEAR`);
+  }
+}
+
 // 7. Demo catalogue: one listing per product, created by its maker.
 const catalog = JSON.parse(fs.readFileSync("web/data/products.json", "utf8"));
 const existing = await view(ids.recourse, "get_listings", { from_index: 0, limit: 100 });

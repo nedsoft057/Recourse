@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       accountOf(me.key),
       "create_listing",
       { title, description, image, price: raw, claim_window_ms: window },
-      { tgas: 30n }
+      { tgas: 15n }
     );
     const created = out.events.find((e) => e.standard === "recourse" && e.event === "listing_created");
     if (!created) {

@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         amount: listing.listing.price,
         msg: JSON.stringify({ listing_id: listing.id }),
       },
-      { contract: TOKEN, deposit: 1n, tgas: 150n }
+      { contract: TOKEN, deposit: 1n, tgas: 80n }
     );
     const purchased = out.events.find((e) => e.standard === "recourse" && e.event === "purchased");
     if (!purchased) {

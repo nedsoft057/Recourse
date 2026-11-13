@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     let out;
     switch (body.action) {
       case "withdraw":
-        out = await act(signer, "withdraw", {}, { deposit: 1n, tgas: 60n });
+        out = await act(signer, "withdraw", {}, { deposit: 1n, tgas: 40n });
         break;
       case "pass_on": {
         const to = PEOPLE.find((p) => p.key === body.to && p.role === "buyer");
