@@ -4,6 +4,7 @@
 import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 
 const SITE = process.env.SITE || "https://recourse-market.vercel.app";
 const OUT = "film";
@@ -33,13 +34,22 @@ const ONLY = (process.env.ONLY || "").split(",").map((s) => s.trim()).filter(Boo
 async function clip(name, fn) {
   if (ONLY.length && !ONLY.some((o) => name.startsWith(o))) return true;
   const browser = await chromium.launch();
-  const context = await browser.newContext({
-    viewport: VIEW,
-    deviceScaleFactor: 2,
-    recordVideo: { dir: OUT, size: { width: 780, height: 1688 } },
-  });
+  const context = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 2 });
   await context.addInitScript(CURSOR);
   const page = await context.newPage();
+  // Record at full device resolution through the DevTools screencast
+  // (Playwright's own recorder captures at CSS size only).
+  const dir = path.join(OUT, name);
+  fs.mkdirSync(dir, { recursive: true });
+  const frames = [];
+  const cdp = await context.newCDPSession(page);
+  cdp.on("Page.screencastFrame", async (f) => {
+    const file = path.join(dir, `f${String(frames.length).padStart(5, "0")}.jpg`);
+    fs.writeFileSync(file, Buffer.from(f.data, "base64"));
+    frames.push({ file, ts: f.metadata.timestamp });
+    cdp.send("Page.screencastFrameAck", { sessionId: f.sessionId }).catch(() => {});
+  });
+  await cdp.send("Page.startScreencast", { format: "jpeg", quality: 92, maxWidth: 780, maxHeight: 1688, everyNthFrame: 1 });
   const started = Date.now();
   const marks = [];
   const mark = (label) => marks.push({ label, t: (Date.now() - started) / 1000 });
@@ -51,14 +61,29 @@ async function clip(name, fn) {
     console.error(`[${name}] failed:`, e.message);
     await page.screenshot({ path: `${OUT}/${name}-error.jpg`, type: "jpeg", quality: 80 }).catch(() => {});
   }
-  await sleep(800);
-  const video = page.video();
+  await sleep(1000);
+  const end = Date.now() / 1000;
+  await cdp.send("Page.stopScreencast").catch(() => {});
   await context.close();
   await browser.close();
-  const file = await video.path();
-  fs.renameSync(file, path.join(OUT, `${name}.webm`));
+  // Frames arrive only when the page repaints: hold each until the next one.
+  const t0 = started / 1000;
+  let list = "";
+  frames.forEach((f, i) => {
+    const next = i + 1 < frames.length ? frames[i + 1].ts : end;
+    const d = Math.max(0.001, next - Math.max(f.ts, i === 0 ? t0 : f.ts));
+    list += `file '${path.resolve(f.file)}'\nduration ${d.toFixed(4)}\n`;
+  });
+  if (frames.length) list += `file '${path.resolve(frames[frames.length - 1].file)}'\n`;
+  fs.writeFileSync(path.join(dir, "list.txt"), list);
+  // Pad the start so clip time 0 lines up with the marks.
+  const lead = frames.length ? Math.max(0, frames[0].ts - t0) : 0;
+  execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", path.join(dir, "list.txt"),
+    "-vf", `tpad=start_duration=${lead.toFixed(3)}:start_mode=clone,fps=30,scale=780:1688:force_original_aspect_ratio=decrease,pad=780:1688:0:0:white,format=yuv420p`,
+    "-c:v", "libx264", "-crf", "18", "-preset", "veryfast", "-movflags", "+faststart", path.join(OUT, `${name}.mp4`)]);
+  fs.rmSync(dir, { recursive: true, force: true });
   meta[name] = { ok, marks };
-  console.log(`[${name}] ${ok ? "ok" : "FAILED"}`, JSON.stringify(marks));
+  console.log(`[${name}] ${ok ? "ok" : "FAILED"} frames=${frames.length}`, JSON.stringify(marks));
   return ok;
 }
 

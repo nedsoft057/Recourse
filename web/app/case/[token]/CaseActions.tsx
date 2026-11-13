@@ -58,6 +58,8 @@ export function CaseActions({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "That didn't go through.");
       if (data.judged?.outcome) setResult(data.judged.outcome);
+      setStatement("");
+      setPhoto("");
       if (action === "open_claim") tourEmit("claim");
       if (action === "respond") tourEmit("respond");
       router.refresh();
