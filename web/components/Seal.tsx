@@ -1,7 +1,7 @@
 /** The protection mark. `on="dark"` for navy surfaces, `on="light"` for white ones. */
 export function Seal({
   size = 18,
-  on = "dark",
+  on = "light",
   title = "Protected",
   className = "",
 }: {
@@ -10,8 +10,8 @@ export function Seal({
   title?: string;
   className?: string;
 }) {
-  const ring = on === "dark" ? "#7FE6FF" : "#0789AE";
-  const fill = on === "dark" ? "#36D3F2" : "#0789AE";
+  const ring = on === "dark" ? "#9CC5FF" : "#1A73E8";
+  const fill = on === "dark" ? "#5EA2FF" : "#1A73E8";
   const tick = on === "dark" ? "#06111F" : "#FFFFFF";
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={title} className={`seal ${className}`}>

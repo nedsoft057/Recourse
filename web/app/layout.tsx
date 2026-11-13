@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Inter_Tight } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Header } from "@/components/Header";
 import { CONTRACT, EXPLORER } from "@/lib/chain";
 import "./globals.css";
 
-const serif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-  display: "swap",
-});
-const sans = Inter_Tight({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const serif = Inter({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
+const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Recourse: protected payment links",

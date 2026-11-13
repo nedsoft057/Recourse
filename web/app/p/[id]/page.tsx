@@ -58,15 +58,15 @@ export default async function Checkout({ params }: { params: Promise<{ id: strin
 
         <div className="tiles">
           <div className="tile">
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#0AAFD6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1A73E8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>
             Not right? Claim the held part back
           </div>
           <div className="tile">
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#0AAFD6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12h13M13 6l6 6-6 6" /></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1A73E8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12h13M13 6l6 6-6 6" /></svg>
             Resell it, and the protection goes too
           </div>
           <div className="tile">
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#0AAFD6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z" /></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1A73E8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z" /></svg>
             Paid on NEAR testnet in test USDC
           </div>
         </div>

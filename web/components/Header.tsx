@@ -9,12 +9,14 @@ export async function Header() {
       <div className="masthead-inner">
         <Link href="/" className="wordmark">Recourse</Link>
         <nav className="nav" aria-label="Main">
-          <Link href="/new">Create a link</Link>
           <Link href="/sell">Seller desk</Link>
           <Link href="/purchases">Purchases</Link>
           {me.role === "reviewer" && <Link href="/review">Review queue</Link>}
         </nav>
-        <IdentitySwitcher people={PEOPLE} current={me.key} />
+        <div className="masthead-right">
+          <IdentitySwitcher people={PEOPLE} current={me.key} />
+          <Link className="button small-btn" href="/new">Create a link</Link>
+        </div>
       </div>
     </header>
   );

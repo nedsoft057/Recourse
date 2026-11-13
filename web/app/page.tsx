@@ -1,20 +1,30 @@
 import Link from "next/link";
 import { Seal } from "@/components/Seal";
+import { Landscape } from "@/components/Landscape";
 
 export default function Landing() {
   return (
     <>
-      <section className="hero landing-hero">
-        <span className="chip"><b />Live on NEAR testnet</span>
-        <h1>Crypto payments, now with a chargeback.</h1>
-        <p className="sub">
-          Make a protected payment link for anything you sell on WhatsApp, Instagram or face to face. Your buyer pays in
-          USDC. Part reaches you right away; the rest is held in their receipt until the order is right.
-        </p>
-        <div className="hero-actions">
-          <Link className="button" href="/new">Create a protected link</Link>
-          <Link className="button ghost" href="/p/1">Try a sample checkout</Link>
+      <section className="sky-hero">
+        <div className="sky-hero-text">
+          <span className="trust-chip">
+            <span className="trust-dots" aria-hidden="true"><i /><i /><i /></span>
+            Live on NEAR testnet, with an AI dispute judge
+          </span>
+          <h1>
+            <span>Crypto payments,</span>
+            <span className="blue">now with a chargeback.</span>
+          </h1>
+          <p className="sub">
+            Make a protected payment link for anything you sell on WhatsApp, Instagram or face to face. Part of the
+            payment reaches you now; the rest is held in your buyer's receipt until the order is right.
+          </p>
+          <div className="hero-actions">
+            <Link className="button" href="/new">Create a protected link</Link>
+            <Link className="button quiet" href="/p/1">Try a sample checkout</Link>
+          </div>
         </div>
+        <Landscape />
       </section>
 
       <div className="wrap">
@@ -41,7 +51,7 @@ export default function Landing() {
 
         <section className="section split-section" aria-label="What makes it different">
           <div className="dark-card">
-            <Seal size={28} />
+            <Seal size={28} on="light" />
             <h3>Protection that travels with the item</h3>
             <p>
               The receipt is an NFT the buyer holds. Sell the item on, pass the receipt with it, and the new owner keeps

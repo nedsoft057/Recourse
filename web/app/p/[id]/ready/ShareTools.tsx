@@ -41,15 +41,15 @@ export function ShareTools({ url, title, price }: { url: string; title: string; 
       </label>
       <div className="share-row">
         <a href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#0AAFD6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20l1.3-4A8 8 0 1 1 8.5 19z" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1A73E8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20l1.3-4A8 8 0 1 1 8.5 19z" /></svg>
           WhatsApp
         </a>
         <button type="button" onClick={copy}>
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#0AAFD6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.8" fill="#0AAFD6" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1A73E8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.8" fill="#1A73E8" /></svg>
           Copy for Instagram
         </button>
         <button type="button" onClick={more}>
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#0AAFD6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 8l5-5 5 5" /><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1A73E8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 8l5-5 5 5" /><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg>
           More
         </button>
       </div>

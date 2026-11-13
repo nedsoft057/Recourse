@@ -20,16 +20,16 @@ export default async function LinkReady({ params }: { params: Promise<{ id: stri
   const host = h.get("x-forwarded-host") || h.get("host") || "recourse-market.vercel.app";
   const proto = h.get("x-forwarded-proto") || "https";
   const url = `${proto}://${host}/p/${link.id}`;
-  const qr = await QRCode.toString(url, { type: "svg", margin: 0, color: { dark: "#06111F", light: "#FFFFFF" } });
+  const qr = await QRCode.toString(url, { type: "svg", margin: 0, color: { dark: "#2B2F36", light: "#FFFFFF" } });
   const windowText = minutes(link.listing.claim_window_ms);
 
   return (
     <>
       <section className="hero ready-hero">
         <svg className="big-seal" width="84" height="84" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="10.5" fill="none" stroke="#7FE6FF" strokeWidth="0.9" strokeDasharray="1.6 1.3" />
-          <circle cx="12" cy="12" r="7.6" fill="#36D3F2" />
-          <path d="M8.4 12.2l2.4 2.4 4.8-5" fill="none" stroke="#06111F" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="12" r="10.5" fill="none" stroke="#1A73E8" strokeWidth="0.9" strokeDasharray="1.6 1.3" />
+          <circle cx="12" cy="12" r="7.6" fill="#1A73E8" />
+          <path d="M8.4 12.2l2.4 2.4 4.8-5" fill="none" stroke="#FFFFFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <h1>Your link is ready</h1>
         <p className="sub">
