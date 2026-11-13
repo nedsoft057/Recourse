@@ -38,6 +38,10 @@ const STORAGE_LISTING: u128 = 10_000_000_000_000_000_000_000; // 0.01 NEAR
 const MAX_EXTENSION_MS: u64 = 7 * 86_400_000;
 const STORAGE_RECEIPT: u128 = 20_000_000_000_000_000_000_000; // 0.02 NEAR
 
+/// The web app. Listing photos stored as site paths ("/products/x.jpg") are
+/// turned into full URLs in the receipt NFT so wallets and explorers can show them.
+const SITE_URL: &str = "https://recourse-market.vercel.app";
+
 const MIN_CLAIM_WINDOW_MS: u64 = 60_000; // 1 minute (demo)
 const MAX_CLAIM_WINDOW_MS: u64 = 90 * 24 * 60 * 60 * 1000; // 90 days
 const MAX_TEXT: usize = 280;
@@ -1135,7 +1139,13 @@ impl FungibleTokenReceiver for Recourse {
                 "{} protected until {} (ms). Refund rights belong to the holder of this receipt.",
                 locked, claim_ends
             )),
-            media: listing.image.clone(),
+            media: listing.image.as_ref().map(|i| {
+                if i.starts_with('/') {
+                    format!("{SITE_URL}{i}")
+                } else {
+                    i.clone()
+                }
+            }),
             media_hash: None,
             copies: Some(1),
             issued_at: Some(now.to_string()),
@@ -1278,7 +1288,7 @@ impl NonFungibleTokenMetadataProvider for Recourse {
             name: "Recourse Receipts".to_string(),
             symbol: "RCPT".to_string(),
             icon: None,
-            base_uri: None,
+            base_uri: Some(SITE_URL.to_string()),
             reference: None,
             reference_hash: None,
         }

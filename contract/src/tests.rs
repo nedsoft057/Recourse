@@ -426,3 +426,24 @@ fn buyer_record_counts_claims_won_and_lost() {
     assert_eq!((r.claims, r.won, r.lost), (2, 1, 1));
     assert_eq!(c.get_buyer(buyer2()).claims, 0);
 }
+
+#[test]
+fn receipt_nft_shows_the_product_photo() {
+    let mut c = setup();
+    ctx(shop(), 1_000, 0);
+    let id = c.create_listing(
+        "Tote".into(),
+        "Leather tote".into(),
+        Some("/products/market-tote.jpg".into()),
+        U128(100 * USDC),
+        7 * MIN,
+    );
+    ctx(token(), 2_000, 0);
+    let _ = c.ft_on_transfer(buyer(), U128(100 * USDC), format!("{{\"listing_id\":{id}}}"));
+    let token_id = (c.next_receipt - 1).to_string();
+    let nft = c.nft_token(token_id).unwrap();
+    assert_eq!(
+        nft.metadata.unwrap().media.unwrap(),
+        "https://recourse-market.vercel.app/products/market-tote.jpg"
+    );
+}

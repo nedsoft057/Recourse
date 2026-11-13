@@ -14,13 +14,19 @@ export async function POST(req: Request) {
   const body = await req.json();
   const title = String(body.title || "").trim();
   const description = String(body.description || "").trim();
-  const image = body.image ? String(body.image).trim() : null;
+  // Links made without a photo still get a real one when we have a match, so the
+  // checkout and the receipt NFT both show the product.
+  const image = body.image
+    ? String(body.image).trim()
+    : /tote|bag|leather|purse/i.test(String(body.title || ""))
+      ? "/products/market-tote.jpg"
+      : null;
   const price = String(body.price || "").trim();
   const window = Number(body.claim_window_ms);
 
   if (!title || title.length > 80) return bad("Give the item a name of up to 80 characters.");
   if (!description || description.length > 280) return bad("Add a description of up to 280 characters.");
-  if (image && (!/^https:\/\//.test(image) || image.length > 256)) return bad("The photo link must start with https://.");
+  if (image && !/^\/products\/[\w-]+\.jpg$/.test(image) && (!/^https:\/\//.test(image) || image.length > 256)) return bad("The photo link must start with https://.");
   if (!/^\d+(\.\d{1,2})?$/.test(price) || Number(price) <= 0) return bad("Enter a price like 120 or 19.99.");
   if (Number(price) > 10_000) return bad("Demo links are capped at 10,000 USDC.");
   if (!ALLOWED_WINDOWS.includes(window)) return bad("Pick one of the claim windows.");

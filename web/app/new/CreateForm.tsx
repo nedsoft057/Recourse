@@ -82,7 +82,7 @@ export function CreateForm({ sellerName, lockBps, tier }: { sellerName: string; 
       </label>
 
       <label className="field">
-        Photo link <span className="hint">(optional, e.g. the image from your Instagram post)</span>
+        Photo link <span className="hint">(optional, e.g. the image from your Instagram post. It also becomes the picture on the buyer's receipt NFT)</span>
         <input type="url" maxLength={256} value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://" />
       </label>
 
