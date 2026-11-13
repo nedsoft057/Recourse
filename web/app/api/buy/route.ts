@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { act, view, cleanError, CONTRACT, TOKEN } from "@/lib/chain";
 import { accountOf, currentPerson } from "@/lib/identity";
+import { ensureStorage } from "@/lib/storage";
 import type { ListingView } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "This piece isn't for sale right now." }, { status: 404 });
   }
   try {
+    await ensureStorage(listing.listing.merchant);
     // Pay the exact price to the contract; the contract splits it and mints the receipt.
     const out = await act(
       accountOf(me.key),

@@ -30,12 +30,18 @@ export function Thumb({
   className?: string;
   eager?: boolean;
 }) {
+  const src = image || stockPhoto(title);
   const [failed, setFailed] = useState(false);
   return (
     <div className={`thumb ${className}`} style={{ background: pick(title) }}>
-      {image && !failed && (
-        <img src={image} alt={title} loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />
+      {src && !failed && (
+        <img src={src} alt={title} loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />
       )}
     </div>
   );
+}
+
+/** Links made without a photo still get a real one when we have a match. */
+function stockPhoto(title: string): string | null {
+  return /tote|bag|leather|purse/i.test(title) ? "/products/market-tote.jpg" : null;
 }

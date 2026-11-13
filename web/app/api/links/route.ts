@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { act, cleanError } from "@/lib/chain";
+import { ensureStorage } from "@/lib/storage";
 import { accountOf, currentPerson } from "@/lib/identity";
 
 const DAY = 86_400_000;
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
   const raw = (BigInt(whole) * 1_000_000n + BigInt((frac + "000000").slice(0, 6))).toString();
 
   try {
+    await ensureStorage(accountOf(me.key));
     const out = await act(
       accountOf(me.key),
       "create_listing",
