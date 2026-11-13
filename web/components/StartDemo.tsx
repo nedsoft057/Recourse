@@ -13,7 +13,7 @@ export function StartDemo({ className, label = "Try the 2-minute demo" }: { clas
       disabled={busy}
       onClick={async () => {
         setBusy(true);
-        await actAs("atelier");
+        await actAs("loomhouse");
         writeTour({ step: 0 });
         router.push("/new");
         router.refresh();

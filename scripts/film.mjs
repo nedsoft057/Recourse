@@ -197,8 +197,8 @@ async function setAs(page, key) {
 }
 
 // Set-up work that isn't filmed: a fresh link and a purchase, done over the API.
-async function freshPurchase(page, { title, price, description, buyer }) {
-  await setAs(page, "atelier");
+async function freshPurchase(page, { title, price, description, buyer, seller = "atelier" }) {
+  await setAs(page, seller);
   const link = await api(page, "/api/links", { title, description, price, image: null, claim_window_ms: 300000 });
   await setAs(page, buyer);
   // The new link can take a moment to be visible to the RPC node.
@@ -224,7 +224,7 @@ const T0 = Date.now();
   const page = await ctx.newPage();
   await page.goto(SITE);
   if (!ONLY.length || ONLY.some((o) => "13-collect".startsWith(o))) {
-    shared.collect = await freshPurchase(page, { title: "Card wallet", price: "15", description: "Slim hand-stitched leather card wallet.", buyer: "buyer-b" });
+    shared.collect = await freshPurchase(page, { title: "Card wallet", price: "15", description: "Slim hand-stitched leather card wallet.", buyer: "buyer-b", seller: "loomhouse" });
   }
   if (!ONLY.length || ONLY.some((o) => "14-silent".startsWith(o))) {
     shared.silent = await freshPurchase(page, { title: "Aso-oke cushion cover", price: "18", description: "Hand-woven aso-oke cushion cover, 45 cm.", buyer: "buyer-b" });
@@ -250,7 +250,7 @@ await clip("01-landing", async (page, mark) => {
 await clip("02-create", async (page, mark) => {
   await page.goto(SITE);
   await settle(page, 600);
-  await setAs(page, "atelier");
+  await setAs(page, "loomhouse");
   await page.reload();
   await settle(page, 800);
   mark("start");
@@ -344,10 +344,10 @@ await clip("05-claim", async (page, mark) => {
   await showEvidence(page);
 });
 
-async function respondAndRule(page, mark, token, text, files) {
+async function respondAndRule(page, mark, token, text, files, seller = "loomhouse") {
   await page.goto(`${SITE}/case/${token}`);
   await settle(page, 400);
-  await setAs(page, "atelier");
+  await setAs(page, seller);
   await page.reload();
   await settle(page, 1200);
   mark("case");
@@ -387,7 +387,7 @@ await clip("06-respond", async (page, mark) => {
 await clip("10-appeal", async (page, mark) => {
   await page.goto(`${SITE}/case/${shared.token}`);
   await settle(page, 400);
-  await setAs(page, "atelier");
+  await setAs(page, "loomhouse");
   await page.reload();
   await settle(page, 1200);
   mark("appeal");
@@ -440,7 +440,8 @@ await clip("07-lie", async (page, mark) => {
     mark,
     p.token,
     "Delivered Tuesday 10:42 by GIG Logistics, tracking GIG-482-117, status Delivered. The buyer messaged me 'got it, thanks' that afternoon.",
-    ["delivery-photo.jpg", "courier-chat.zip"]
+    ["delivery-photo.jpg", "courier-chat.zip"],
+    "atelier"
   );
 });
 
@@ -500,7 +501,7 @@ await clip("13-collect", async (page, mark) => {
   await waitUntil(340);
   await page.goto(`${SITE}/sell`);
   await settle(page, 400);
-  await setAs(page, "atelier");
+  await setAs(page, "loomhouse");
   await page.reload();
   await settle(page, 1500);
   mark("desk");
