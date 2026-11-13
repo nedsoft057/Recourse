@@ -481,7 +481,7 @@ async function waitUntil(sec) {
 
 // The seller never answered: after the deadline, anyone can refund the holder.
 await clip("14-silent", async (page, mark) => {
-  await waitUntil(200);
+  await waitUntil(245);
   await page.goto(`${SITE}/case/${shared.silent.token}`);
   await settle(page, 400);
   await setAs(page, "buyer-b");
