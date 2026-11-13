@@ -1,0 +1,38 @@
+name: Create testnet master account
+
+# Creates the master testnet account through NEAR's testnet faucet service.
+# Only the PUBLIC key is used here; the private key never touches GitHub.
+on:
+  push:
+    paths: ["bootstrap/account.json"]
+  workflow_dispatch:
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create and fund account
+        run: |
+          ACCOUNT=$(jq -r .account_id bootstrap/account.json)
+          PUBKEY=$(jq -r .public_key bootstrap/account.json)
+          RPC=https://test.rpc.fastnear.com
+          view() {
+            curl -s $RPC -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"view_account\",\"finality\":\"final\",\"account_id\":\"$ACCOUNT\"}}"
+          }
+          if view | jq -e .result.amount >/dev/null; then
+            echo "Account $ACCOUNT already exists"
+          else
+            BODY="{\"newAccountId\":\"$ACCOUNT\",\"newAccountPublicKey\":\"$PUBKEY\"}"
+            for URL in https://helper.nearprotocol.com/account https://helper.testnet.near.org/account; do
+              echo "Trying $URL"
+              CODE=$(curl -s -o resp.txt -w '%{http_code}' -X POST "$URL" -H 'Content-Type: application/json' -d "$BODY")
+              echo "HTTP $CODE: $(head -c 400 resp.txt)"
+              [ "$CODE" = "200" ] && break
+            done
+            sleep 10
+          fi
+          BAL=$(view | jq -r .result.amount)
+          echo "Balance (yoctoNEAR): $BAL"
+          echo "## $ACCOUNT" >> $GITHUB_STEP_SUMMARY
+          echo "Balance: $(python3 -c "print(int('${BAL:-0}' if '${BAL}'!='null' else 0)/1e24)") NEAR" >> $GITHUB_STEP_SUMMARY
