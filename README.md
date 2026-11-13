@@ -8,6 +8,7 @@ Recourse turns any sale into a protected payment link. The buyer pays in USDC; p
 - **Contract (testnet):** [`recourse.favour-recourse.testnet`](https://testnet.nearblocks.io/address/recourse.favour-recourse.testnet)
 - **Track:** NFTs That Do Something (receipts are NFTs that hold funds and carry refund rights)
 - **Built for:** NEAR HACKATHON, November 2026
+- **Built by:** Favour ([@Favour_D_Crier](https://x.com/Favour_D_Crier))
 
 ## The problem
 
@@ -21,6 +22,41 @@ Under the hood this is escrow of the buyer's own payment; the seller deposits no
 2. **Seller reputation that sets the terms.** A seller's on-chain record decides how much of each payment is held: 50% for new sellers, 30% established, 15% trusted, 100% for sellers under review.
 3. **A complete dispute process.** Claim, seller response, AI ruling with a signed record, a locked appeal window, human review when the AI can't decide, and timeouts so money is never stuck.
 
+## How it works for real users
+
+The live demo uses prepared testnet accounts so judges can try every role in minutes. This is the product as a real buyer and seller would use it.
+
+### Signing in
+
+1. Anyone opens Recourse and signs in with **Google** (or email). Behind the scenes a NEAR account is created for them and secured by that login, using NEAR's social-login wallets. There is no seed phrase to write down, and no browser extension to install.
+2. On first sign-in they pick what they're here to do: **I'm selling** or **I'm buying**. They can switch any time; the same account can both buy and sell.
+3. People who already have a NEAR wallet can connect it instead (NEAR Wallet Selector).
+
+### Selling
+
+1. **Set up once.** The seller adds a shop name and where payouts should go. Recourse prepays their contract storage, so they never need NEAR for gas or storage. New sellers start in the **New** tier, so half of each payment reaches them straight away.
+2. **Create a link.** Item name, description, photo, price in USDC and a claim window (3, 7 or 14 days). The page shows a live preview of what the buyer will see.
+3. **Share it anywhere.** The link works in WhatsApp, Instagram DMs, X, email or a printed QR code at a market stall. It's a normal web page, so it works for buyers who have never used crypto.
+4. **Get paid.** The seller's share arrives the moment the buyer pays. The held part is released when the claim window closes with no claim; one tap on the **Seller desk** collects every finished order at once.
+5. **Answer claims.** If a buyer claims, the seller gets a notice with a response deadline (72 hours), sends their side with photos or tracking, and sees the AI's ruling and the reasons.
+6. **Earn better terms.** Every finished order improves the seller's record. Established sellers have 30% held, trusted sellers 15%. Sellers who lose too many claims go under review and have the whole payment held until their record recovers.
+
+### Buying
+
+1. **Open the link** the seller sent. The page shows the item, the seller's record (how many orders they've completed and how many claims they've lost), and exactly how the payment splits: how much goes to the seller now, how much is held for the buyer, and for how long.
+2. **Pay in USDC.** Sign in with Google and pay from the account's balance. Buyers who hold USDC on another chain or exchange top up first; paying directly from other chains through NEAR Intents is on the roadmap.
+3. **Keep the receipt.** The buyer receives a receipt NFT in their account. It appears under **Purchases** with a countdown to the end of the claim window.
+4. **If it goes wrong**, they open the receipt and press **Claim**: pick what happened (not delivered, not as described, damaged), describe it and add photos. Evidence is encrypted; only its fingerprint is stored on-chain. The held money freezes until the case is decided.
+5. **Get a decision.** Once the seller responds, or the response deadline passes, the AI judge rules within seconds. Either side can appeal to a human reviewer within 48 hours. After that the money goes where the ruling says, into the buyer's **Ready to withdraw**.
+
+### Reselling
+
+The buyer sells the item on, and in **Purchases** passes the receipt to the new owner's account (or any NEAR wallet). The new owner now holds whatever protection time is left and can claim exactly as the original buyer could. The original buyer can no longer claim. Receipts can't be passed on while a claim is open.
+
+### Who pays for what
+
+The buyer pays only the item price. Recourse covers gas and storage for both sides, so nobody needs to hold NEAR. A production deployment would fund this, and the human review service, from a small fee per protected payment; the demo charges no fee.
+
 ## Try it (about 10 minutes)
 
 The demo runs on NEAR testnet with prepared accounts, so you don't need a wallet. Use **"Viewing as"** at the top right to switch between two buyers (Ada, Bayo), three sellers (Atelier Ama, Loom House, Field Kit Supply) and the dispute reviewer. Every action is a real testnet transaction, signed for the person you've chosen. Demo clocks are short: seller responses and appeals take **3 minutes**, not days.
@@ -28,15 +64,17 @@ The demo runs on NEAR testnet with prepared accounts, so you don't need a wallet
 | # | Do this | You should see |
 | --- | --- | --- |
 | 1 | Open https://recourse-market.vercel.app | "Crypto payments, now with a chargeback." with **Create a protected link** and **Try a sample checkout** |
-| 2 | Viewing as **Atelier Ama**: **Create a link**. Enter an item and a price (e.g. 20), choose **5 min**, create | A live preview of the buyer's card while you type, then **Your link is ready**: the link, share buttons, a scannable QR code and the payout timeline (10 USDC now, 10 USDC when the window closes) |
+| 2 | Viewing as **Loom House**: **Create a link**. Enter an item and a price (e.g. 20), choose **5 min**, create | A live preview of the buyer's card while you type, then **Your link is ready**: the link, share buttons, a scannable QR code and the payout timeline (10 USDC now, 10 USDC when the window closes) |
 | 3 | Copy the link. Switch to **Ada**, open the link, press **Pay** | The receipt panel shows the split (50% to the seller now, 50% held), then "Paid. Receipt #N is yours" with a link to the transaction on NearBlocks |
 | 4 | **Purchases**: on the new receipt, **Pass on receipt** to Bayo | "Passed on to Bayo. The protection went with it." Switch to **Bayo**: the receipt is in his purchases, marked as passed on by Ada |
 | 5 | As **Bayo**, open the receipt and **Claim**: pick "It arrived damaged" and describe the problem | Status changes to "Claim open, 10 USDC frozen". The receipt can no longer be transferred |
-| 6 | Switch to **Atelier Ama** → **Seller desk** → "Claim open: respond". Write a response and send it | The AI judge rules straight away. The case page shows the decision, the reasons and an appeal countdown, while the money stays held |
+| 6 | Switch to **Loom House** → **Seller desk** → "Claim open: respond". Write a response and send it | The AI judge rules straight away. The case page shows the decision, the reasons and an appeal countdown, while the money stays held |
 | 7 | Wait 3 minutes, then press **Carry out the ruling** (anyone can) | The receipt closes as Refunded, Split or Settled, and the amount appears in the right person's **Ready to withdraw**. **Withdraw to wallet** sends real test USDC |
 | 8 | Instead of 7: as Bayo or the seller, **Appeal** inside the window | "Ruling appealed". Switch to **Reviewer** → **Review queue** → open the case → pick a decision, write a reason → **Record final decision** |
 | 9 | Variation: open a claim and let the seller ignore it for 3 minutes | "The seller didn't respond in time" → **Refund ... to the receipt holder** |
 | 10 | Variation: buy something and don't claim. After the 5-minute window, open **Seller desk** as the seller | **Collect 1 finished order** pays the held part to the seller, and their completed-order count goes up |
+
+**Seller reputation in action:** Atelier Ama has lost several test claims, so she is **under review**. Open any of her links and the checkout shows "Seller under review" and holds the full payment for the buyer. Loom House, a New seller, has half held.
 
 If the AI judge has no API key, or can't decide, step 6 sends the case to human review instead and shows the reason on the case page. That's the designed fallback (see below), and the reviewer flow in step 8 finishes the case.
 
@@ -130,4 +168,4 @@ To deploy your own copy, add `NEAR_TESTNET_MASTER_ACCOUNT` and `NEAR_TESTNET_MAS
 
 ## License
 
-MIT
+MIT. Copyright (c) 2026 Ndukwu Chinedu Favour.
