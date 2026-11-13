@@ -40,3 +40,17 @@ jobs:
         with:
           name: wasm
           path: out/*.wasm
+
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install and check deploy script
+        working-directory: scripts
+        run: |
+          npm install --no-audit --no-fund
+          node --check deploy-testnet.mjs
+          node -e "import('near-api-js').then(m => { for (const k of ['connect','keyStores','KeyPair','utils']) if (!m[k]) throw new Error('missing ' + k); console.log('near-api-js', require('near-api-js/package.json').version, 'ok'); })"

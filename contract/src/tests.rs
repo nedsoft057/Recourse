@@ -72,7 +72,7 @@ fn setup() -> Recourse {
 /// Buyer pays 100 USDC at time `at`; returns the receipt id.
 fn buy(c: &mut Recourse, who: AccountId, at: u64) -> TokenId {
     ctx(token(), at, 0);
-    c.ft_on_transfer(who, U128(100 * USDC), "{\"listing_id\":0}".into());
+    let _ = c.ft_on_transfer(who, U128(100 * USDC), "{\"listing_id\":0}".into());
     (c.next_receipt - 1).to_string()
 }
 
@@ -97,7 +97,7 @@ fn new_seller_payment_is_split_50_50() {
 fn wrong_amount_is_rejected() {
     let mut c = setup();
     ctx(token(), 2_000, 0);
-    c.ft_on_transfer(buyer(), U128(99 * USDC), "{\"listing_id\":0}".into());
+    let _ = c.ft_on_transfer(buyer(), U128(99 * USDC), "{\"listing_id\":0}".into());
 }
 
 #[test]
@@ -105,14 +105,14 @@ fn wrong_amount_is_rejected() {
 fn other_tokens_are_rejected() {
     let mut c = setup();
     ctx(acc("fake.testnet"), 2_000, 0);
-    c.ft_on_transfer(buyer(), U128(100 * USDC), "{\"listing_id\":0}".into());
+    let _ = c.ft_on_transfer(buyer(), U128(100 * USDC), "{\"listing_id\":0}".into());
 }
 
 #[test]
 fn relayer_pays_on_behalf_of_buyer() {
     let mut c = setup();
     ctx(token(), 2_000, 0);
-    c.ft_on_transfer(
+    let _ = c.ft_on_transfer(
         relayer(),
         U128(100 * USDC),
         "{\"listing_id\":0,\"buyer\":\"buyer.testnet\"}".into(),

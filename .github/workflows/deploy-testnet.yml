@@ -1,0 +1,56 @@
+name: Deploy to testnet
+
+on:
+  workflow_dispatch:
+    inputs:
+      window_minutes:
+        description: "Merchant response and appeal windows, in minutes (demo)"
+        default: "3"
+      review_minutes:
+        description: "Human review deadline, in minutes (demo)"
+        default: "10"
+      reset:
+        description: "Delete and recreate the contract accounts first"
+        type: boolean
+        default: false
+
+concurrency: deploy-testnet
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (from rust-toolchain.toml)
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-near
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
+
+      - name: Build contracts
+        run: |
+          (cd contract && cargo near build non-reproducible-wasm)
+          (cd token && cargo near build non-reproducible-wasm)
+          mkdir -p out
+          find target/near -name '*.wasm' -exec cp {} out/ \;
+          ls -la out
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install script dependencies
+        working-directory: scripts
+        run: npm install --no-audit --no-fund
+
+      - name: Deploy and set up demo accounts
+        env:
+          MASTER_ACCOUNT: ${{ secrets.NEAR_TESTNET_MASTER_ACCOUNT }}
+          MASTER_KEY: ${{ secrets.NEAR_TESTNET_MASTER_KEY }}
+          WINDOW_MINUTES: ${{ inputs.window_minutes }}
+          REVIEW_MINUTES: ${{ inputs.review_minutes }}
+          RESET: ${{ inputs.reset }}
+        run: node scripts/deploy-testnet.mjs

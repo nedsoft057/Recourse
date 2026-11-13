@@ -1,0 +1,8 @@
+{
+  "name": "recourse-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "near-api-js": "^5.0.0"
+  }
+}
