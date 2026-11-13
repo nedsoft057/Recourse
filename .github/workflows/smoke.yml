@@ -1,0 +1,41 @@
+name: Live site check
+
+# Loads the live site and runs one real cycle through it on testnet:
+# a seller creates a link, a buyer pays, the receipt is passed to another buyer.
+on:
+  push:
+    paths: [".github/smoke/trigger"]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      SITE: https://recourse-market.vercel.app
+    steps:
+      - name: Pages load
+        run: |
+          for p in / /new /p/1 /p/1/ready /sell /purchases; do
+            code=$(curl -s -o page.html -w '%{http_code}' "$SITE$p")
+            title=$(grep -o '<h1[^>]*>[^<]*' page.html | head -1 | sed 's/<h1[^>]*>//')
+            echo "$p -> HTTP $code | h1: $title"
+            [ "$code" = "200" ] || exit 1
+          done
+      - name: Full cycle on testnet
+        run: |
+          J='Content-Type: application/json'
+          curl -s -c jar -b jar -X POST "$SITE/api/identity" -H "$J" -d '{"as":"atelier"}'; echo
+          LINK=$(curl -s -c jar -b jar -X POST "$SITE/api/links" -H "$J" \
+            -d '{"title":"Smoke test card wallet","description":"Automated check of the payment-link flow.","price":"5","image":null,"claim_window_ms":300000}')
+          echo "create link: $LINK"
+          ID=$(echo "$LINK" | jq -r .id); [ "$ID" != "null" ] || exit 1
+          curl -s -o /dev/null -w "ready page HTTP %{http_code}\n" "$SITE/p/$ID/ready"
+          curl -s -c jar -b jar -X POST "$SITE/api/identity" -H "$J" -d '{"as":"buyer-a"}'; echo
+          BUY=$(curl -s -c jar -b jar -X POST "$SITE/api/buy" -H "$J" -d "{\"listing_id\":$ID}")
+          echo "pay: $BUY"
+          TOKEN=$(echo "$BUY" | jq -r .token_id); [ "$TOKEN" != "null" ] || exit 1
+          PASS=$(curl -s -c jar -b jar -X POST "$SITE/api/act" -H "$J" -d "{\"action\":\"pass_on\",\"token_id\":\"$TOKEN\",\"to\":\"buyer-b\"}")
+          echo "pass on: $PASS"
+          echo "$PASS" | jq -e .ok >/dev/null || exit 1
+          curl -s -X POST https://test.rpc.fastnear.com -H "$J" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"recourse.favour-recourse.testnet\",\"method_name\":\"get_receipt\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $TOKEN | base64 -w0)\"}}" \
+            | jq -r '.result.result | implode | fromjson | "receipt \(.token_id): holder \(.holder), locked \(.escrow.locked), status \(.escrow.status)"'
