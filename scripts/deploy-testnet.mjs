@@ -75,7 +75,7 @@ async function ensureAccount(id) {
   console.log(`+ created ${id} with ${funding[id]} NEAR`);
 }
 
-async function call(signer, contractId, methodName, args = {}, deposit = "0", gas = 100n) {
+async function call(signer, contractId, methodName, args = {}, deposit = "0", gas = 30n) {
   const a = await acct(signer);
   const res = await a.functionCall({
     contractId,
@@ -125,11 +125,27 @@ if (await exists(FUNDER)) {
 console.log(`Master: ${M}`);
 for (const id of Object.keys(funding)) await ensureAccount(id);
 
+// 6c. Keep demo people able to pay gas: NEAR checks prepaid gas against the balance.
+async function available(id) {
+  const b = await (await acct(id)).getAccountBalance();
+  return BigInt(b.available);
+}
+for (const [id, min, top] of [
+  ...ids.buyers.map((b) => [b, "0.3", "0.5"]),
+  ...ids.shops.map((s) => [s, "0.35", "0.4"]),
+  [ids.judge, "0.2", "0.4"],
+]) {
+  if ((await available(id)) < near(min)) {
+    await master.sendMoney(id, near(top));
+    console.log(`  topped up ${id} with ${top} NEAR`);
+  }
+}
+
 // 2. Test USDC.
 await (await acct(ids.token)).deployContract(fs.readFileSync("out/test_usdc.wasm"));
 console.log(`deployed ${ids.token}`);
 if (!(await initialised(ids.token, "ft_metadata"))) {
-  await call(ids.token, ids.token, "new", { owner: M });
+  await call(ids.token, ids.token, "new", { owner: M }, "0", 100n);
 }
 
 // 3. Recourse. If the new code can't read the old state (its layout changed),
@@ -161,7 +177,7 @@ if (recourseState === "uninit") {
     response_ms: WINDOW_MS,
     appeal_ms: WINDOW_MS,
     review_ms: REVIEW_MS,
-  });
+  }, "0", 100n);
 } else {
   await call(M, ids.recourse, "set_windows", {
     response_ms: WINDOW_MS,
@@ -196,22 +212,6 @@ for (const s of ids.shops) {
   const m = await view(ids.recourse, "get_merchant", { account_id: s });
   if (BigInt(m.merchant.storage_balance) < near("0.15")) {
     await call(M, ids.recourse, "add_storage_for", { account_id: s }, "0.25");
-  }
-}
-
-// 6c. Keep demo people able to pay gas: NEAR checks prepaid gas against the balance.
-async function available(id) {
-  const b = await (await acct(id)).getAccountBalance();
-  return BigInt(b.available);
-}
-for (const [id, min, top] of [
-  ...ids.buyers.map((b) => [b, "0.3", "0.5"]),
-  ...ids.shops.map((s) => [s, "0.12", "0.2"]),
-  [ids.judge, "0.2", "0.4"],
-]) {
-  if ((await available(id)) < near(min)) {
-    await master.sendMoney(id, near(top));
-    console.log(`  topped up ${id} with ${top} NEAR`);
   }
 }
 
