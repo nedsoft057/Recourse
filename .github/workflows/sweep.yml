@@ -1,0 +1,15 @@
+name: Sweep faucet funds to master
+on:
+  workflow_dispatch:
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: mkdir -p /tmp/s && cp scripts/sweep.mjs /tmp/s/ && cd /tmp/s && npm init -y >/dev/null && npm i near-api-js@5 >/dev/null && cp -r $GITHUB_WORKSPACE/bootstrap . && node sweep.mjs
+        env:
+          MASTER_ACCOUNT: ${{ secrets.NEAR_TESTNET_MASTER_ACCOUNT }}
+          MASTER_KEY: ${{ secrets.NEAR_TESTNET_MASTER_KEY }}
