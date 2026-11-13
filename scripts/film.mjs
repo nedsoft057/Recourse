@@ -33,8 +33,8 @@ const ONLY = (process.env.ONLY || "").split(",").map((s) => s.trim()).filter(Boo
 
 async function clip(name, fn) {
   if (ONLY.length && !ONLY.some((o) => name.startsWith(o))) return true;
-  const browser = await chromium.launch();
-  const context = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 2 });
+  const browser = await chromium.launch({ args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] });
+  const context = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 2, permissions: ["microphone"] });
   await context.addInitScript(CURSOR);
   const page = await context.newPage();
   // Record at full device resolution through the DevTools screencast
@@ -156,6 +156,34 @@ async function scrollBy(page, dy, ms = 900) {
 async function settle(page, ms = 600) {
   await page.waitForLoadState("networkidle").catch(() => {});
   await sleep(ms);
+}
+
+const ASSETS = process.env.ASSETS || "assets";
+async function attach(page, names) {
+  const chooser = page.waitForEvent("filechooser");
+  await press(page, page.getByRole("button", { name: "Add files" }));
+  (await chooser).setFiles(names.map((n) => path.join(ASSETS, n)));
+  await sleep(600);
+  await page.waitForFunction(() => !document.querySelector(".attach-list li.muted"), null, { timeout: 60000 });
+  await sleep(900);
+}
+async function recordVoice(page, secs = 3) {
+  await press(page, page.getByRole("button", { name: "Record a voice note" }));
+  await sleep(secs * 1000);
+  await press(page, page.getByRole("button", { name: /Stop recording/ }));
+  await sleep(600);
+  await page.waitForFunction(() => !document.querySelector(".attach-list li.muted"), null, { timeout: 60000 });
+  await sleep(800);
+}
+async function showEvidence(page) {
+  const ev = page.locator('section[aria-label="Evidence"]');
+  if (await ev.count()) {
+    const files = ev.locator(".evidence-files").last();
+    await (await files.count() ? files : ev).scrollIntoViewIfNeeded();
+    await scrollBy(page, 120, 600);
+    events.push({ kind: "evidence", t: now(), box: await ((await files.count()) ? files : ev).boundingBox() });
+    await sleep(2600);
+  }
 }
 
 async function api(page, url, body) {
@@ -296,15 +324,21 @@ await clip("05-claim", async (page, mark) => {
   await reason.selectOption("damaged");
   await sleep(500);
   await typeHuman(page, page.getByLabel("What happened"), "Arrived Tuesday with the left handle torn off its rivet. The rivet was loose in the bag.");
+  mark("voice");
+  await recordVoice(page, 3);
+  mark("files");
+  await attach(page, ["torn-handle.jpg"]);
   mark("submit");
   await press(page, page.getByRole("button", { name: /^Claim .* back$/ }));
   await page.getByText(/Respond|seller|responds/i).first().waitFor({ timeout: 30000 });
   await settle(page, 1500);
   mark("claimed");
-  await sleep(1800);
+  await sleep(1200);
+  mark("evidence");
+  await showEvidence(page);
 });
 
-async function respondAndRule(page, mark, token, text, photo) {
+async function respondAndRule(page, mark, token, text, files) {
   await page.goto(`${SITE}/case/${token}`);
   await settle(page, 400);
   await setAs(page, "atelier");
@@ -313,7 +347,7 @@ async function respondAndRule(page, mark, token, text, photo) {
   mark("case");
   await sleep(1200);
   await typeHuman(page, page.getByLabel("What happened"), text);
-  if (photo) await typeHuman(page, page.getByLabel(/Photo link/), photo, { typos: false });
+  if (files) { mark("files"); await attach(page, files); }
   mark("send");
   await press(page, page.getByRole("button", { name: "Send response" }));
   mark("judging");
@@ -352,6 +386,8 @@ await clip("10-appeal", async (page, mark) => {
   await settle(page, 1200);
   mark("appeal");
   await typeHuman(page, page.getByLabel("Why the ruling is wrong"), "The courier signed for it undamaged. I want a person to look at this.");
+  mark("files");
+  await attach(page, ["dispatch-check.jpg"]);
   await press(page, page.getByRole("button", { name: "Send to a human reviewer" }));
   await page.locator(".notice, .error").first().waitFor({ timeout: 30000 }).catch(() => {});
   await settle(page, 1500);
@@ -364,6 +400,8 @@ await clip("10-appeal", async (page, mark) => {
   await sleep(1500);
   await press(page, page.getByRole("link", { name: new RegExp(`#${shared.token}`) }).first());
   await settle(page, 1500);
+  mark("appealfiles");
+  await showEvidence(page);
   mark("decide");
   await press(page, page.getByRole("button", { name: "Split 50/50" }));
   await typeHuman(page, page.getByLabel(/Your reasoning/), "The handle failed at the rivet, likely in transit. Neither side can prove when. Splitting the held amount.");
@@ -396,7 +434,7 @@ await clip("07-lie", async (page, mark) => {
     mark,
     p.token,
     "Delivered Tuesday 10:42 by GIG Logistics, tracking GIG-482-117, status Delivered. The buyer messaged me 'got it, thanks' that afternoon.",
-    "https://recourse-market.vercel.app/products/enamel-mug.jpg"
+    ["delivery-photo.jpg", "courier-chat.zip"]
   );
 });
 
