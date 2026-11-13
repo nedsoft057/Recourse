@@ -26,7 +26,7 @@ jobs:
           J='Content-Type: application/json'
           curl -s -c jar -b jar -X POST "$SITE/api/identity" -H "$J" -d '{"as":"fieldkit"}'; echo
           LINK=$(curl -s -c jar -b jar -X POST "$SITE/api/links" -H "$J" \
-            -d '{"title":"Smoke test card wallet","description":"Automated check of the payment-link flow.","price":"5","image":null,"claim_window_ms":300000}')
+            -d '{"title":"Smoke test leather tote","description":"Automated check of the payment-link flow.","price":"5","image":null,"claim_window_ms":300000}')
           echo "create link: $LINK"
           ID=$(echo "$LINK" | jq -r .id); [ "$ID" != "null" ] || exit 1
           curl -s -o /dev/null -w "ready page HTTP %{http_code}\n" "$SITE/p/$ID/ready"
@@ -58,3 +58,5 @@ jobs:
           sleep 3
           curl -s -X POST https://test.rpc.fastnear.com -H "$J" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"pay.favour-recourse.testnet\",\"method_name\":\"get_receipt\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $TOKEN | base64 -w0)\"}}" \
             | jq -r '.result.result | implode | fromjson | "receipt \(.token_id): holder \(.holder), locked \(.escrow.locked), status \(.escrow.status)"'
+          curl -s -X POST https://test.rpc.fastnear.com -H "$J" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"pay.favour-recourse.testnet\",\"method_name\":\"nft_token\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $TOKEN | base64 -w0)\"}}" \
+            | jq -r '.result.result | implode | fromjson | "nft \(.token_id): owner \(.owner_id), media \(.metadata.media)"'
