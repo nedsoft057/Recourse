@@ -50,7 +50,7 @@ The most common question: *why can the seller get paid if the buyer never confir
 **What can change that:**
 
 1. **The parcel is late.** On day 5 the buyer presses **Not arrived yet? Extend window**. The window moves to day 14 (it extends by the original length, at most 7 days, and only once per receipt). Ama can't collect until it closes.
-2. **It arrives damaged.** The buyer presses **Claim** inside the window, picks a reason and adds photos. The 50 freezes; it can't be collected, and the receipt can't be passed on. Ama has 72 hours to answer.
+2. **It arrives damaged.** The buyer presses **Claim** inside the window, picks a reason, and attaches a photo of the damage (and a voice note, if that's easier than typing). The 50 freezes; it can't be collected, and the receipt can't be passed on. Ama has 72 hours to answer.
 3. **Ama answers.** The AI judge reads both sides and rules. The money stays frozen for 48 more hours so either side can appeal to a human. Then it goes where the decision says: all back to the buyer, all to Ama, or split.
 4. **Ama doesn't answer in 72 hours.** Anyone can trigger the default: the 50 goes back to the receipt holder.
 5. **The buyer lies** ("never arrived" when it did). A claim never refunds anyone by itself. Ama shows tracking marked delivered, a handover photo or the buyer's own "got it, thanks". Rule 1 of the judge's policy releases to the seller when there is specific proof of delivery. The rejected claim goes on the buyer's **claim record**, which sellers see on every case and the judge weighs (but never on its own).
@@ -74,7 +74,7 @@ The live demo uses prepared testnet accounts so judges can try every role in min
 2. **Create a link.** Item name, description, photo, price in USDC and a claim window (3, 7 or 14 days). The page shows a live preview of what the buyer will see.
 3. **Share it anywhere.** The link works in WhatsApp, Instagram DMs, X, email or a printed QR code at a market stall. It's a normal web page, so it works for buyers who have never used crypto.
 4. **Get paid.** The seller's share arrives the moment the buyer pays. The held part is released when the claim window closes with no claim; one tap on the **Seller desk** collects every finished order at once.
-5. **Answer claims.** If a buyer claims, the seller gets a notice with a response deadline (72 hours), sends their side with photos or tracking, and sees the AI's ruling and the reasons.
+5. **Answer claims.** If a buyer claims, the seller gets a notice with a response deadline (72 hours), sends their side with photos, tracking screenshots, courier chats or a voice note, and sees the AI's ruling and the reasons.
 6. **Earn better terms.** Every finished order improves the seller's record. Established sellers have 30% held, trusted sellers 15%. Sellers who lose too many claims go under review and have the whole payment held until their record recovers.
 
 ### Buying
@@ -82,7 +82,7 @@ The live demo uses prepared testnet accounts so judges can try every role in min
 1. **Open the link** the seller sent. The page shows the item, the seller's record (how many orders they've completed and how many claims they've lost), and exactly how the payment splits: how much goes to the seller now, how much is held for the buyer, and for how long.
 2. **Pay in USDC.** Sign in with Google and pay from the account's balance. Buyers who hold USDC on another chain or exchange top up first; paying directly from other chains through NEAR Intents is on the roadmap.
 3. **Keep the receipt.** The buyer receives a receipt NFT in their account. It appears under **Purchases** with a countdown to the end of the claim window.
-4. **If it goes wrong**, they open the receipt and press **Claim**: pick what happened (not delivered, not as described, damaged), describe it and add photos. Evidence is encrypted; only its fingerprint is stored on-chain. The held money freezes until the case is decided.
+4. **If it goes wrong**, they open the receipt and press **Claim**: pick what happened (not delivered, not as described, damaged), describe it, and attach photos, a voice note, a video or documents. Evidence is encrypted; only its fingerprint is stored on-chain. The held money freezes until the case is decided.
 5. **Get a decision.** Once the seller responds, or the response deadline passes, the AI judge rules within seconds. Either side can appeal to a human reviewer within 48 hours. After that the money goes where the ruling says, into the buyer's **Ready to withdraw**.
 
 ### Reselling
@@ -99,14 +99,15 @@ The demo runs on NEAR testnet with prepared accounts, so you don't need a wallet
 
 | # | Do this | You should see |
 | --- | --- | --- |
-| 1 | Open https://recourse-market.vercel.app | "Crypto payments, now with a chargeback." with **Create a protected link** and **Try a sample checkout** |
+| 0 | Short on time? On the landing page press **Try the 2-minute demo** | A step card at the bottom walks you through steps 2 to 6, switching people and filling in the forms for you. **See a decided case** opens a finished dispute straight away |
+| 1 | Open https://recourse-market.vercel.app | "Crypto payments, now with a chargeback." with **Try the 2-minute demo** and **See a decided case** |
 | 2 | Viewing as **Loom House**: **Create a link**. Enter an item and a price (e.g. 20), choose **5 min**, create | A live preview of the buyer's card while you type, then **Your link is ready**: the link, share buttons, a scannable QR code and the payout timeline (10 USDC now, 10 USDC when the window closes) |
 | 3 | Copy the link. Switch to **Ada**, open the link, press **Pay** | The receipt panel shows the split (50% to the seller now, 50% held), then "Paid. Receipt #N is yours" with a link to the transaction on NearBlocks |
 | 4 | **Purchases**: on the new receipt, **Pass on receipt** to Bayo | "Passed on to Bayo. The protection went with it." Switch to **Bayo**: the receipt is in his purchases, marked as passed on by Ada |
-| 5 | As **Bayo**, open the receipt and **Claim**: pick "It arrived damaged" and describe the problem | Status changes to "Claim open, 10 USDC frozen". The receipt can no longer be transferred |
+| 5 | As **Bayo**, open the receipt and **Claim**: pick "It arrived damaged", describe the problem, then **Add files** (a photo, a PDF, a zip) and/or **Record a voice note** | Each file uploads as you add it. Status changes to "Claim open, 10 USDC frozen" and the receipt can no longer be transferred. The case page shows the evidence: photos inline, voice notes playable, other files as downloads |
 | 6 | Switch to **Loom House** → **Seller desk** → "Claim open: respond". Write a response and send it | The AI judge rules straight away. The case page shows the decision, the reasons and an appeal countdown, while the money stays held |
 | 7 | Wait 3 minutes, then press **Carry out the ruling** (anyone can) | The receipt closes as Refunded, Split or Settled, and the amount appears in the right person's **Ready to withdraw**. **Withdraw to wallet** sends real test USDC |
-| 8 | Instead of 7: as Bayo or the seller, **Appeal** inside the window | "Ruling appealed". Switch to **Reviewer** → **Review queue** → open the case → pick a decision, write a reason → **Record final decision** |
+| 8 | Instead of 7: as Bayo or the seller, **Appeal** inside the window, optionally attaching more files | "Ruling appealed", with the appeal's files shown to the reviewer. Switch to **Reviewer** → **Review queue** → open the case → pick a decision, write a reason → **Record final decision** |
 | 9 | Variation: open a claim and let the seller ignore it for 3 minutes | "The seller didn't respond in time" → **Refund ... to the receipt holder** |
 | 10 | Variation: buy, then on **Purchases** press **Not arrived yet? Extend window** | The window moves back by its original length and the receipt says "extended once". The button disappears: it works once per receipt |
 | 11 | Variation: buy something and don't claim. After the 5-minute window, open **Seller desk** as the seller | **Collect 1 finished order** pays the held part to the seller, and their completed-order count goes up |
@@ -168,6 +169,8 @@ Seller ──respond (encrypted evidence)──▶ backend runs the AI judge
 
 **Money never moves on an AI ruling directly.** It stays locked through the appeal window, and `finalize` carries out the ruling afterwards. One appeal per ruling, decided by a human, and human decisions are final. If a review isn't decided in time, `review_timeout` refunds the holder. If the seller never responds, `default_judgment` refunds the holder.
 
+**Evidence files.** Claims, responses and appeals can carry up to 5 files each (4 MB per file): photos, voice notes recorded in the browser or uploaded, videos, PDFs, documents and zips. Each file is encrypted on the server (AES-256-GCM) before it's stored in Vercel Blob, so the stored copy is unreadable on its own. The file's address, name, type, size and SHA-256 fingerprint go inside that side's encrypted evidence on-chain, so a file can't be swapped later: when it's opened, the server decrypts it and checks the fingerprint. Only the buyer, the seller and the reviewer can open files. The AI judge sees each file's name and type but can't open it, so under policy rule 8 it treats a described attachment as a claim, not proof, and sends any case that turns on what a file shows to a human reviewer, who can open everything.
+
 **Buyer claim records.** The contract counts each account's claims: opened, won (decided at least half for the buyer, or refunded by the seller) and rejected. Sellers see the record on the case page; the judge gets it in the case file, under policy rule 7: context only, never decisive, and no penalty for a first claim.
 
 **Seller tiers** are computed in the contract on every payment. Loss rate = lost disputes ÷ finished orders (finished means settled, voluntarily refunded or finally ruled). A seller with no finished orders is New, so there's never a division by zero. Flagging needs at least 3 losses, so one bad case can't flag a small seller. A seller can raise their own held share but never set it below their tier.
@@ -177,7 +180,7 @@ Seller ──respond (encrypted evidence)──▶ backend runs the AI judge
 | Role | Trusted to | Worst case | v2 |
 | --- | --- | --- | --- |
 | Backend and judge account | Run the judge honestly and post only rulings the enclave produced | A fake ruling. It would fail the hash and signature checks shown on the case page, and the appeal window gives the other side time to appeal | Verify the enclave signature inside the contract against a registered enclave key |
-| Evidence encryption | Keep evidence private (AES-256-GCM with a server key; the claim records only the hash) | The backend can read evidence | Encrypt in the browser to the enclave's key |
+| Evidence encryption | Keep evidence and evidence files private (AES-256-GCM with a server key; the claim records only the hash, and each file's fingerprint is inside the encrypted evidence) | The backend can read evidence | Encrypt in the browser to the enclave's key, and let a vision model in the enclave read photos |
 | Reviewer (contract owner) | Decide appeals and flagged cases fairly | Biased decisions | A panel of staked reviewers, or a second independent model |
 | Demo accounts | All demo people share one testnet key, so you can try every role without a wallet | Anyone with the key can act as any demo person | Real wallets via NEAR Wallet Selector |
 
@@ -187,9 +190,9 @@ Payments are testnet-only, in test USDC. Cross-chain payment through NEAR Intent
 
 Write methods: `register_merchant`, `approve_merchant` / `suspend_merchant` (owner only), `add_storage`, `add_storage_for`, `set_min_lock_bps`, `create_listing`, `set_listing_active`, `ft_on_transfer` (payments), `extend_window`, `release`, `release_many`, `refund`, `open_claim`, `respond`, `default_judgment`, `post_ruling` (judge only), `flag_for_review` (judge only), `appeal`, `finalize`, `resolve_review` (owner only), `review_timeout`, `withdraw`, plus the NEP-171 transfer methods (blocked while a receipt is in dispute).
 
-View methods: `get_config`, `get_merchant`, `get_listing`, `get_listings`, `get_receipt`, `get_merchant_receipts`, `get_evidence`, `get_balance`, `get_buyer`, `nft_token`, `nft_tokens_for_owner`, `nft_metadata`.
+View methods: `get_config`, `get_merchant`, `get_listing`, `get_listings`, `get_receipt`, `get_merchant_receipts`, `get_evidence`, `get_appeal_evidence`, `get_balance`, `get_buyer`, `nft_token`, `nft_tokens_for_owner`, `nft_metadata`.
 
-The 26 unit tests in [`contract/src/tests.rs`](contract/src/tests.rs) cover: payments must match the price exactly; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, re-register to reset their record, or lower their held share below their tier; ruling funds stay locked until the appeal window closes; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no paying out the same order twice; evidence is stored per side; tiers use finished orders as the denominator; the holder (and only the holder) can extend the window, once; collection waits for the extended window; buyer records count claims won and lost.
+The 28 unit tests in [`contract/src/tests.rs`](contract/src/tests.rs) cover: payments must match the price exactly; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, re-register to reset their record, or lower their held share below their tier; ruling funds stay locked until the appeal window closes; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no paying out the same order twice; evidence is stored per side; tiers use finished orders as the denominator; the holder (and only the holder) can extend the window, once; collection waits for the extended window; buyer records count claims won and lost; receipt NFTs carry the product photo; appeals can carry evidence.
 
 ## Run it yourself
 
