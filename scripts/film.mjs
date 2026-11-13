@@ -28,7 +28,10 @@ const CURSOR = `
     addEventListener('mouseup', () => { d.style.transform = 'scale(1)'; d.style.background = 'rgba(20,24,32,.28)'; }, true);
   });`;
 
+const ONLY = (process.env.ONLY || "").split(",").map((s) => s.trim()).filter(Boolean);
+
 async function clip(name, fn) {
+  if (ONLY.length && !ONLY.some((o) => name.startsWith(o))) return true;
   const browser = await chromium.launch();
   const context = await browser.newContext({
     viewport: VIEW,
@@ -338,5 +341,5 @@ await clip("09-demo", async (page, mark) => {
 });
 
 meta.shared = shared;
-fs.writeFileSync(`${OUT}/meta.json`, JSON.stringify(meta, null, 2));
+fs.writeFileSync(`${OUT}/meta-${ONLY.join("_") || "all"}.json`, JSON.stringify(meta, null, 2));
 console.log(JSON.stringify(shared));
