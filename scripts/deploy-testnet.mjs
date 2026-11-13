@@ -163,7 +163,23 @@ for (const s of ids.shops) {
   if (after.merchant.status !== "Approved") await call(M, ids.recourse, "approve_merchant", { account_id: s });
 }
 
-// 7. Summary for Vercel env vars.
+// 7. Demo catalogue: one listing per product, created by its maker.
+const catalog = JSON.parse(fs.readFileSync("web/data/products.json", "utf8"));
+const existing = await view(ids.recourse, "get_listings", { from_index: 0, limit: 100 });
+const listed = new Set(existing.map((l) => l.listing.image));
+for (const p of catalog.products) {
+  const image = `/products/${p.slug}.jpg`;
+  if (listed.has(image)) continue;
+  await call(`${p.maker}.${M}`, ids.recourse, "create_listing", {
+    title: p.title,
+    description: p.description,
+    image,
+    price: String(BigInt(p.price) * USDC),
+    claim_window_ms: catalog.claim_window_minutes * 60_000,
+  });
+}
+
+// 8. Summary for Vercel env vars.
 const summary = [
   "## Recourse testnet deployment",
   "",

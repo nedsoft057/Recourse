@@ -1,6 +1,9 @@
 name: Deploy to testnet
 
 on:
+  push:
+    branches: [main]
+    paths: ["contract/**", "token/**", "scripts/**", "web/data/products.json"]
   workflow_dispatch:
     inputs:
       window_minutes:

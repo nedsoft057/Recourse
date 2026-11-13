@@ -1,0 +1,94 @@
+{
+  "claim_window_minutes": 20,
+  "makers": {
+    "atelier": {
+      "name": "Atelier Ama",
+      "craft": "Vegetable-tanned leather, cut and stitched by hand in a two-person studio.",
+      "place": "Kumasi"
+    },
+    "loomhouse": {
+      "name": "Loom House",
+      "craft": "Strip-woven and indigo-dyed textiles from a cooperative of eleven weavers.",
+      "place": "Iseyin"
+    },
+    "fieldkit": {
+      "name": "Field Kit Supply",
+      "craft": "Hard-wearing everyday kit, made in small runs and repaired for free.",
+      "place": "Calabar"
+    }
+  },
+  "products": [
+    {
+      "slug": "indigo-throw",
+      "maker": "loomhouse",
+      "title": "Indigo strip throw",
+      "price": 140,
+      "description": "Seven hand-woven strips joined into one throw, dyed in natural indigo. 130 by 180 cm.",
+      "details": ["Cotton, natural indigo", "130 × 180 cm", "Hand-wash cold"],
+      "tone": "#2F3B62"
+    },
+    {
+      "slug": "market-tote",
+      "maker": "atelier",
+      "title": "Market tote",
+      "price": 120,
+      "description": "A deep, open tote in vegetable-tanned leather that darkens with use. Fits a laptop and a day's shopping.",
+      "details": ["Vegetable-tanned leather", "42 × 36 × 14 cm", "Brass rivets"],
+      "tone": "#8A5A3C"
+    },
+    {
+      "slug": "field-jacket",
+      "maker": "fieldkit",
+      "title": "Canvas field jacket",
+      "price": 165,
+      "description": "Waxed cotton canvas, four front pockets and a cord collar. Built to be worn for ten years.",
+      "details": ["Waxed cotton canvas", "Sizes S to XL", "Free repairs for life"],
+      "tone": "#5B6247"
+    },
+    {
+      "slug": "card-wallet",
+      "maker": "atelier",
+      "title": "Card wallet",
+      "price": 35,
+      "description": "Three pockets, no stitching to come undone: folded and riveted from a single piece.",
+      "details": ["Vegetable-tanned leather", "Holds 6 cards", "Brass rivets"],
+      "tone": "#6E4630"
+    },
+    {
+      "slug": "aso-oke-cushion",
+      "maker": "loomhouse",
+      "title": "Aso-oke cushion cover",
+      "price": 42,
+      "description": "Narrow-loom aso-oke in undyed cotton with a fine indigo stripe. Envelope back, no zip.",
+      "details": ["Hand-woven cotton", "50 × 50 cm", "Insert not included"],
+      "tone": "#C9C2B2"
+    },
+    {
+      "slug": "enamel-mug",
+      "maker": "fieldkit",
+      "title": "Enamel camp mug",
+      "price": 18,
+      "description": "Steel with a glass enamel coat. Goes on a fire, in a bag, and through years of drops.",
+      "details": ["Enamelled steel", "350 ml", "Dishwasher safe"],
+      "tone": "#D8DCD6"
+    },
+    {
+      "slug": "natural-belt",
+      "maker": "atelier",
+      "title": "Natural belt",
+      "price": 48,
+      "description": "Undyed leather with a solid brass buckle. Starts pale and ages to honey.",
+      "details": ["Vegetable-tanned leather", "35 mm wide", "Sizes 80 to 110 cm"],
+      "tone": "#B88A5E"
+    },
+    {
+      "slug": "table-runner",
+      "maker": "loomhouse",
+      "title": "Undyed table runner",
+      "price": 30,
+      "description": "A single long strip from the loom, left in natural cotton with knotted ends.",
+      "details": ["Hand-woven cotton", "35 × 200 cm", "Machine-wash gentle"],
+      "tone": "#E3DDD0"
+    }
+  ]
+}
