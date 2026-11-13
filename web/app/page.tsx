@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Seal } from "@/components/Seal";
-import { Landscape } from "@/components/Landscape";
 
 export default function Landing() {
   return (
@@ -24,7 +23,7 @@ export default function Landing() {
             <Link className="button quiet" href="/p/1">Try a sample checkout</Link>
           </div>
         </div>
-        <Landscape />
+        <div className="hero-art" aria-hidden="true" />
       </section>
 
       <div className="wrap">
