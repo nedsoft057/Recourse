@@ -112,10 +112,13 @@ async function callModel(caseText: string): Promise<Run> {
         continue;
       }
       const data = await res.json();
-      const text: string = data.choices?.[0]?.message?.content || "";
+      const msg = data.choices?.[0]?.message || {};
+      const finish = data.choices?.[0]?.finish_reason;
+      // Some reasoning models put everything in reasoning_content when the answer is short.
+      const text: string = `${msg.content || ""}\n${msg.content ? "" : msg.reasoning_content || msg.reasoning || ""}`;
       const ruling = lastRuling(text);
       if (!ruling) {
-        lastError = "the answer didn't match the ruling format";
+        lastError = `the answer didn't match the ruling format (finish: ${finish}, ${text.trim().length} chars, ends "${text.trim().slice(-90).replace(/\s+/g, " ")}")`;
         continue;
       }
       return { ok: true, ruling, chatId: String(data.id || "") };
