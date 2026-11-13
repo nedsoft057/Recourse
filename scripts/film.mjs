@@ -53,6 +53,8 @@ async function clip(name, fn) {
   const started = Date.now();
   const marks = [];
   const mark = (label) => marks.push({ label, t: (Date.now() - started) / 1000 });
+  events = [];
+  clipStart = started;
   let ok = true;
   try {
     await fn(page, mark);
@@ -82,7 +84,7 @@ async function clip(name, fn) {
     "-vf", `tpad=start_duration=${lead.toFixed(3)}:start_mode=clone,fps=30,scale=780:1688:force_original_aspect_ratio=decrease,pad=780:1688:0:0:white,format=yuv420p`,
     "-c:v", "libx264", "-crf", "18", "-preset", "veryfast", "-movflags", "+faststart", path.join(OUT, `${name}.mp4`)]);
   fs.rmSync(dir, { recursive: true, force: true });
-  meta[name] = { ok, marks };
+  meta[name] = { ok, marks, events };
   console.log(`[${name}] ${ok ? "ok" : "FAILED"} frames=${frames.length}`, JSON.stringify(marks));
   return ok;
 }
@@ -90,6 +92,11 @@ async function clip(name, fn) {
 // ---- human-ish input -------------------------------------------------------
 
 let pos = { x: 195, y: 600 };
+// Every tap and every typed field, with where it is on screen, so the video's
+// camera can follow the action.
+let events = [];
+let clipStart = Date.now();
+const now = () => (Date.now() - clipStart) / 1000;
 async function moveTo(page, loc) {
   await loc.scrollIntoViewIfNeeded();
   await sleep(jitter(150, 300));
@@ -109,11 +116,15 @@ async function moveTo(page, loc) {
 async function press(page, loc) {
   await moveTo(page, loc);
   await sleep(jitter(150, 280));
+  const b = await loc.boundingBox();
+  events.push({ kind: "tap", t: now(), box: b });
   await loc.click();
 }
 async function typeHuman(page, loc, text, { typos = true } = {}) {
   await press(page, loc);
   await loc.fill("");
+  const ev = { kind: "type", t: now(), box: await loc.boundingBox() };
+  events.push(ev);
   const neighbours = "qwertyuiopasdfghjklzxcvbnm";
   let i = 0;
   for (const ch of text) {
@@ -130,9 +141,12 @@ async function typeHuman(page, loc, text, { typos = true } = {}) {
     if (/[.,]/.test(ch)) d += jitter(150, 350);
     await sleep(d);
   }
+  ev.end = now();
+  ev.boxEnd = await loc.boundingBox();
   await sleep(jitter(250, 500));
 }
 async function scrollBy(page, dy, ms = 900) {
+  events.push({ kind: "scroll", t: now(), dy, d: ms / 1000 });
   const steps = Math.max(8, Math.round(ms / 30));
   for (let i = 0; i < steps; i++) {
     await page.mouse.wheel(0, dy / steps);
