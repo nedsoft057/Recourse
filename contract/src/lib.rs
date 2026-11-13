@@ -18,6 +18,7 @@ use near_contract_standards::non_fungible_token::enumeration::NonFungibleTokenEn
 use near_contract_standards::non_fungible_token::metadata::{
     NFTContractMetadata, NonFungibleTokenMetadataProvider, TokenMetadata, NFT_METADATA_SPEC,
 };
+use near_contract_standards::non_fungible_token::events::NftMint;
 use near_contract_standards::non_fungible_token::{NonFungibleToken, Token, TokenId};
 use near_sdk::json_types::U128;
 use near_sdk::store::{LookupMap, Vector};
@@ -1158,6 +1159,14 @@ impl FungibleTokenReceiver for Recourse {
         };
         self.tokens
             .internal_mint_with_refund(token_id.clone(), buyer.clone(), Some(metadata), None);
+        // The standard NEP-171 mint event, so wallets and explorers index the
+        // receipt with its owner and picture.
+        NftMint {
+            owner_id: &buyer,
+            token_ids: &[&token_id],
+            memo: None,
+        }
+        .emit();
 
         self.escrows.insert(
             token_id.clone(),

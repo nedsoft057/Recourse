@@ -6,14 +6,26 @@ Recourse turns any sale into a protected payment link. The buyer pays in USDC; p
 
 - **Live app:** https://recourse-market.vercel.app
 - **Contract (testnet):** [`pay.favour-recourse.testnet`](https://testnet.nearblocks.io/address/pay.favour-recourse.testnet)
-- **Track:** NFTs That Do Something (receipts are NFTs that hold funds and carry refund rights)
+- **Tracks:** NFTs That Do Something (main: receipts are NFTs that hold funds and carry refund rights), Real-World Money, Privacy & Private AI
 - **Built for:** NEAR HACKATHON, November 2026
 - **Full architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Built by:** Favour ([@Favour_D_Crier](https://x.com/Favour_D_Crier))
 
-## The problem
+## The problems
 
-Card payments come with buyer protection. Stablecoin payments have none: once you've paid a seller you found on WhatsApp or Instagram, your only recourse is trust. That keeps buyers away from paying in crypto, and keeps honest small sellers from being trusted.
+There are a few plain human problems underneath this product.
+
+**For buyers.** You can send someone money online, but once a crypto transaction is confirmed, what happens if the seller doesn't deliver? Card payments have chargebacks. Stablecoin payments have nothing.
+*Recourse:* part of every payment is held for a claim window. If the item doesn't arrive or isn't right, the buyer claims that part back.
+
+**For sellers.** You shouldn't be treated like a suspicious merchant forever. Your track record should count for something.
+*Recourse:* how much is held is set by the seller's record on-chain: 50% for a new seller, 30% once established, 15% when trusted. Good sellers get paid faster, and nobody can buy or fake a better tier.
+
+**For second-hand buyers.** Why should buyer protection disappear just because the original buyer resold the item?
+*Recourse:* the protection lives in a receipt NFT. Pass the receipt on with the item, and the new owner keeps whatever protection time is left.
+
+**For disputes.** What happens when both sides tell different stories and neither can prove theirs?
+*Recourse:* no system can know the truth for certain, so the aim is a decision that is consistent, explained and open to appeal. Written rules say who should have supplied proof (the seller proves delivery, the buyer proves damage), and missing proof counts against whoever should have given it. The AI judge applies those rules twice, and anything unclear, contested or suspicious goes to a human. Either side can appeal, and the money doesn't move until that's settled.
 
 ## What Recourse does, honestly
 

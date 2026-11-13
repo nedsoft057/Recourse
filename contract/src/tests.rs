@@ -441,6 +441,9 @@ fn receipt_nft_shows_the_product_photo() {
     ctx(token(), 2_000, 0);
     let _ = c.ft_on_transfer(buyer(), U128(100 * USDC), format!("{{\"listing_id\":{id}}}"));
     let token_id = (c.next_receipt - 1).to_string();
+    assert!(near_sdk::test_utils::get_logs()
+        .iter()
+        .any(|l| l.contains("\"standard\":\"nep171\"") && l.contains("nft_mint")));
     let nft = c.nft_token(token_id).unwrap();
     assert_eq!(
         nft.metadata.unwrap().media.unwrap(),
