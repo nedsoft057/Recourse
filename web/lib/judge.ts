@@ -88,6 +88,7 @@ async function callModel(caseText: string): Promise<Run> {
   const key = process.env.NEARAI_API_KEY;
   if (!key) return { ok: false, error: "no NEAR AI Cloud key configured" };
   let lastError = "";
+  let noThinking = true;
   const started = Date.now();
   for (let attempt = 0; attempt < 2; attempt++) {
     // The whole judge must fit in one 60 s request: retry only if there's time.
@@ -99,15 +100,20 @@ async function callModel(caseText: string): Promise<Run> {
         body: JSON.stringify({
           model: JUDGE_MODEL,
           temperature: 0,
-          max_tokens: 900,
+          max_tokens: 1200,
+          // Ask the model to skip its thinking phase: the ruling is a short JSON
+          // answer, and long reasoning runs out of tokens before the answer.
+          ...(noThinking ? { chat_template_kwargs: { thinking: false, enable_thinking: false } } : {}),
           messages: [
             { role: "system", content: POLICY },
-            { role: "user", content: caseText },
+            { role: "user", content: `${caseText}\n\nReply with the JSON object only. Do not explain your reasoning outside the "reasons" field.` },
           ],
         }),
         signal: AbortSignal.timeout(attempt === 0 ? 42_000 : 20_000),
       });
       if (!res.ok) {
+        // If this deployment rejects the thinking switch, retry without it.
+        if (res.status === 400 && noThinking) noThinking = false;
         lastError = `NEAR AI Cloud returned HTTP ${res.status}`;
         continue;
       }
