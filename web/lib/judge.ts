@@ -135,7 +135,13 @@ const flagReason = (s: string) => s.slice(0, 280);
 
 /** Rules on a disputed receipt if it's ready for a ruling. Safe to call more than once. */
 export async function judge(tokenId: string): Promise<{ outcome: string; hash?: string }> {
-  const r = await view<ReceiptView | null>("get_receipt", { token_id: tokenId });
+  // Right after the seller responds, the RPC node may not have the new state
+  // yet. Re-read for a few seconds before deciding there's nothing to rule on.
+  let r = await view<ReceiptView | null>("get_receipt", { token_id: tokenId });
+  for (let i = 0; i < 6 && r?.escrow.status === "Disputed" && !r.escrow.claim?.responded_at; i++) {
+    await new Promise((ok) => setTimeout(ok, 1500));
+    r = await view<ReceiptView | null>("get_receipt", { token_id: tokenId });
+  }
   if (!r) return { outcome: "Receipt not found" };
   const e = r.escrow;
   if (e.status !== "Disputed") return { outcome: "Nothing to rule on" };
