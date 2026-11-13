@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <footer className="site-footer">
           <div className="footer-inner">
             <div>
-              <p className="footer-brand">Recourse</p>
+              <p className="footer-brand"><img src="/logo.svg" alt="" width={24} height={24} className="logo-mark" /> Recourse</p>
               <p className="muted small">Buyer protection for stablecoin payments.</p>
             </div>
             <nav className="footer-links" aria-label="Footer">

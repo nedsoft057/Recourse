@@ -7,7 +7,10 @@ export async function Header() {
   return (
     <header className="masthead">
       <div className="masthead-inner">
-        <Link href="/" className="wordmark">Recourse</Link>
+        <Link href="/" className="wordmark">
+          <img src="/logo.svg" alt="" width={28} height={28} className="logo-mark" />
+          Recourse
+        </Link>
         <nav className="nav" aria-label="Main">
           <Link href="/sell">Seller desk</Link>
           <Link href="/purchases">Purchases</Link>

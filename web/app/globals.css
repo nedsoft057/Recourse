@@ -649,3 +649,6 @@ h1, h2, h3 { font-family: var(--sans); font-weight: 600; letter-spacing: -0.035e
   .guide { left: 0.75rem; right: 0.75rem; bottom: 0.75rem; width: auto; }
   main { padding-bottom: 12rem; }
 }
+
+.wordmark, .footer-brand { display: inline-flex; align-items: center; gap: 0.5rem; }
+.logo-mark { display: block; border-radius: 7px; flex: none; }

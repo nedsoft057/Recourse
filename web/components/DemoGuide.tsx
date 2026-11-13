@@ -68,7 +68,7 @@ const STEPS: Step[] = [
     who: "atelier",
     whoName: "Atelier Ama",
     title: "The ruling",
-    body: "Read the judge's reasons and press Verify this ruling to check it against the enclave's signature. The money stays held while either side can appeal to a person; then it goes to Bayo, the current holder.",
+    body: "Read the judge's reasons. Under Verify this ruling, the hash of the ruling and both sides' evidence is checked against what was recorded on-chain, with the enclave's chat ID and signing address. The money stays held while either side can appeal to a person; then it goes to Bayo, the current holder.",
     path: (t) => `/case/${t.token}`,
     next: "Finish",
   },
