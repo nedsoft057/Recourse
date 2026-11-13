@@ -166,6 +166,25 @@ async function freshPurchase(page, { title, price, description, buyer }) {
 // ---- scenarios -------------------------------------------------------------
 
 const shared = {};
+const T0 = Date.now();
+
+// Set up the scenarios that need time to pass: a clean sale whose window will
+// close, and a claim the seller will ignore.
+{
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(SITE);
+  if (!ONLY.length || ONLY.some((o) => "13-collect".startsWith(o))) {
+    shared.collect = await freshPurchase(page, { title: "Card wallet", price: "15", description: "Slim hand-stitched leather card wallet.", buyer: "buyer-a" });
+  }
+  if (!ONLY.length || ONLY.some((o) => "14-silent".startsWith(o))) {
+    shared.silent = await freshPurchase(page, { title: "Aso-oke cushion cover", price: "18", description: "Hand-woven aso-oke cushion cover, 45 cm.", buyer: "buyer-b" });
+    await api(page, "/api/dispute", { action: "open_claim", token_id: shared.silent.token, reason: "not_delivered", statement: "Two weeks and nothing has arrived. The seller stopped replying.", photo: null });
+  }
+  await browser.close();
+  console.log("setup", JSON.stringify(shared));
+}
 
 await clip("01-landing", async (page, mark) => {
   await page.goto(SITE);
@@ -310,6 +329,37 @@ await clip("06-respond", async (page, mark) => {
   );
 });
 
+// The seller appeals the AI ruling; a human reviewer decides.
+await clip("10-appeal", async (page, mark) => {
+  await page.goto(`${SITE}/case/${shared.token}`);
+  await settle(page, 400);
+  await setAs(page, "atelier");
+  await page.reload();
+  await settle(page, 1200);
+  mark("appeal");
+  await typeHuman(page, page.getByLabel("Why the ruling is wrong"), "The courier signed for it undamaged. I want a person to look at this.");
+  await press(page, page.getByRole("button", { name: "Send to a human reviewer" }));
+  await page.locator(".notice, .error").first().waitFor({ timeout: 30000 }).catch(() => {});
+  await settle(page, 1500);
+  mark("appealed");
+  await sleep(1200);
+  await setAs(page, "reviewer");
+  await page.goto(`${SITE}/review`);
+  await settle(page, 1500);
+  mark("queue");
+  await sleep(1500);
+  await press(page, page.getByRole("link", { name: new RegExp(`#${shared.token}`) }).first());
+  await settle(page, 1500);
+  mark("decide");
+  await press(page, page.getByRole("button", { name: "Split 50/50" }));
+  await typeHuman(page, page.getByLabel(/Your reasoning/), "The handle failed at the rivet, likely in transit. Neither side can prove when. Splitting the held amount.");
+  await press(page, page.getByRole("button", { name: "Record final decision" }));
+  await page.getByText(/Split|split/).first().waitFor({ timeout: 30000 });
+  await settle(page, 1800);
+  mark("decided");
+  await sleep(2500);
+});
+
 // The lying buyer: claims it never arrived; the seller shows proof of delivery.
 await clip("07-lie", async (page, mark) => {
   await page.goto(SITE);
@@ -363,6 +413,47 @@ await clip("09-demo", async (page, mark) => {
   await settle(page, 1500);
   mark("guide");
   await sleep(3500);
+});
+
+async function waitUntil(sec) {
+  const left = T0 + sec * 1000 - Date.now();
+  if (left > 0) { console.log(`waiting ${Math.round(left / 1000)}s for a window to close`); await sleep(left); }
+}
+
+// The seller never answered: after the deadline, anyone can refund the holder.
+await clip("14-silent", async (page, mark) => {
+  await waitUntil(200);
+  await page.goto(`${SITE}/case/${shared.silent.token}`);
+  await settle(page, 400);
+  await setAs(page, "buyer-b");
+  await page.reload();
+  await settle(page, 1500);
+  mark("case");
+  await sleep(2000);
+  await press(page, page.getByRole("button", { name: /Refund .* to the receipt holder/ }));
+  await page.getByText(/Refunded|refunded/).first().waitFor({ timeout: 30000 });
+  await settle(page, 1500);
+  mark("refunded");
+  await sleep(2500);
+});
+
+// A clean sale: no claim, the window closes, the seller collects.
+await clip("13-collect", async (page, mark) => {
+  await waitUntil(340);
+  await page.goto(`${SITE}/sell`);
+  await settle(page, 400);
+  await setAs(page, "atelier");
+  await page.reload();
+  await settle(page, 1500);
+  mark("desk");
+  await sleep(2000);
+  await press(page, page.getByRole("button", { name: /Collect/ }).first());
+  await page.waitForFunction(() => !/Collecting/.test(document.body.innerText), null, { timeout: 30000 });
+  await settle(page, 2000);
+  mark("collected");
+  await sleep(1500);
+  await scrollBy(page, -400, 800);
+  await sleep(1500);
 });
 
 meta.shared = shared;
