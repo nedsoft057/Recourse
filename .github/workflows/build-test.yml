@@ -1,0 +1,42 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (from rust-toolchain.toml)
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Unit tests
+        run: cargo test --workspace
+
+      - name: Install cargo-near
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
+
+      - name: Build recourse.wasm
+        working-directory: contract
+        run: cargo near build non-reproducible-wasm
+
+      - name: Build test_usdc.wasm
+        working-directory: token
+        run: cargo near build non-reproducible-wasm
+
+      - name: Collect wasm
+        run: |
+          mkdir -p out
+          find target/near -name '*.wasm' -exec cp {} out/ \;
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm
+          path: out/*.wasm

@@ -1,0 +1,6 @@
+target/
+out/
+node_modules/
+.next/
+.env*
+.vercel
