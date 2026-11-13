@@ -4,7 +4,7 @@ name: Create testnet master account
 # Only the PUBLIC key is used here; the private key never touches GitHub.
 on:
   push:
-    paths: ["bootstrap/account.json"]
+    paths: ["bootstrap/*.json"]
   workflow_dispatch:
 
 jobs:
@@ -12,10 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create and fund account
+      - name: Create and fund accounts
         run: |
-          ACCOUNT=$(jq -r .account_id bootstrap/account.json)
-          PUBKEY=$(jq -r .public_key bootstrap/account.json)
+          for F in bootstrap/*.json; do
+          ACCOUNT=$(jq -r .account_id $F)
+          PUBKEY=$(jq -r .public_key $F)
           RPC=https://test.rpc.fastnear.com
           view() {
             curl -s $RPC -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"view_account\",\"finality\":\"final\",\"account_id\":\"$ACCOUNT\"}}"
@@ -36,3 +37,4 @@ jobs:
           echo "Balance (yoctoNEAR): $BAL"
           echo "## $ACCOUNT" >> $GITHUB_STEP_SUMMARY
           echo "Balance: $(python3 -c "print(int('${BAL:-0}' if '${BAL}'!='null' else 0)/1e24)") NEAR" >> $GITHUB_STEP_SUMMARY
+          done
