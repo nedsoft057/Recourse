@@ -201,7 +201,13 @@ async function freshPurchase(page, { title, price, description, buyer }) {
   await setAs(page, "atelier");
   const link = await api(page, "/api/links", { title, description, price, image: null, claim_window_ms: 300000 });
   await setAs(page, buyer);
-  const buy = await api(page, "/api/buy", { listing_id: Number(link.id) });
+  // The new link can take a moment to be visible to the RPC node.
+  let buy;
+  for (let i = 0; ; i++) {
+    await sleep(2000);
+    try { buy = await api(page, "/api/buy", { listing_id: Number(link.id) }); break; }
+    catch (e) { if (i >= 5 || !/for sale/.test(e.message)) throw e; }
+  }
   return { listing: link.id, token: buy.token_id };
 }
 
