@@ -667,3 +667,22 @@ h1, h2, h3 { font-family: var(--sans); font-weight: 600; letter-spacing: -0.035e
   .tiles { grid-template-columns: 1fr; }
   .tiles > * { display: flex; align-items: center; gap: 0.6rem; }
 }
+
+/* Evidence files */
+.attach { display: grid; gap: 0.5rem; }
+.attach-label { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+.attach-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.attach-buttons .button { flex: 1 1 10rem; }
+.attach-buttons .recording { border-color: #D6453D; color: #D6453D; }
+.attach-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.attach-list li { display: grid; grid-template-columns: auto 1fr auto auto; gap: 0.6rem; align-items: center; padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-radius: 10px; background: #fff; min-width: 0; }
+.attach-kind { font-size: 0.75rem; font-weight: 600; color: #1A73E8; background: #E7F0FD; border-radius: 6px; padding: 0.1rem 0.45rem; }
+.attach-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.attach-x { background: none; border: 0; color: var(--mute); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.attach-x:hover { color: #D6453D; text-decoration: underline; }
+.evidence-files { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); }
+.ef { display: grid; gap: 0.3rem; min-width: 0; padding: 0.5rem; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.ef img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; display: block; }
+.ef audio, .ef video { width: 100%; }
+.ef-audio, .ef-video { grid-column: 1 / -1; }
+.ef-name { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

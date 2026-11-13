@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DEMO_TEXT, readTour, tourEmit } from "@/lib/tour";
+import { Attachments, type FileRef } from "@/components/Attachments";
 
 export type CaseMode =
   | { kind: "none" }
@@ -35,6 +36,8 @@ export function CaseActions({
   const [statement, setStatement] = useState("");
   const [photo, setPhoto] = useState("");
   const [bps, setBps] = useState(10_000);
+  const [files, setFiles] = useState<FileRef[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const step = readTour()?.step;
@@ -60,6 +63,7 @@ export function CaseActions({
       if (data.judged?.outcome) setResult(data.judged.outcome);
       setStatement("");
       setPhoto("");
+      setFiles([]);
       if (action === "open_claim") tourEmit("claim");
       if (action === "respond") tourEmit("respond");
       router.refresh();
@@ -75,10 +79,7 @@ export function CaseActions({
         What happened
         <textarea required minLength={10} maxLength={1500} value={statement} onChange={(e) => setStatement(e.target.value)} placeholder={placeholder} />
       </label>
-      <label className="field">
-        Photo link <span className="hint">(optional)</span>
-        <input type="url" value={photo} onChange={(e) => setPhoto(e.target.value)} placeholder="https://" />
-      </label>
+      <Attachments value={files} onChange={setFiles} onBusy={setUploading} />
     </>
   );
 
@@ -96,7 +97,7 @@ export function CaseActions({
     case "claim":
       return shell(
         "Something wrong? Claim it back",
-        <form style={{ display: "grid", gap: "0.8rem" }} onSubmit={(e) => { e.preventDefault(); send("open_claim", { reason, statement, photo: photo || null }); }}>
+        <form style={{ display: "grid", gap: "0.8rem" }} onSubmit={(e) => { e.preventDefault(); send("open_claim", { reason, statement, photo: photo || null, files }); }}>
           <label className="field">
             What went wrong
             <select value={reason} onChange={(e) => setReason(e.target.value)}>
@@ -106,16 +107,16 @@ export function CaseActions({
             </select>
           </label>
           {evidenceFields("Dates, what you received, messages with the seller.")}
-          <button className="button" disabled={busy}>{busy ? "Opening claim…" : `Claim ${held} USDC back`}</button>
+          <button className="button" disabled={busy || uploading}>{busy ? "Opening claim…" : `Claim ${held} USDC back`}</button>
         </form>,
         `${held} USDC is frozen as soon as you claim. ${seller} gets a chance to respond, then the AI judge rules.`
       );
     case "respond":
       return shell(
         "Respond to the claim",
-        <form style={{ display: "grid", gap: "0.8rem" }} onSubmit={(e) => { e.preventDefault(); send("respond", { statement, photo: photo || null }); }}>
+        <form style={{ display: "grid", gap: "0.8rem" }} onSubmit={(e) => { e.preventDefault(); send("respond", { statement, photo: photo || null, files }); }}>
           {evidenceFields("Tracking number and status, delivery photo, your messages with the buyer.")}
-          <button className="button" disabled={busy}>{busy ? "Sending, then the AI judge rules…" : "Send response"}</button>
+          <button className="button" disabled={busy || uploading}>{busy ? "Sending, then the AI judge rules…" : "Send response"}</button>
         </form>,
         "The AI judge rules right after you respond. If you don't respond in time, the buyer is refunded."
       );
@@ -137,12 +138,13 @@ export function CaseActions({
     case "appeal":
       return shell(
         "Disagree? Appeal once",
-        <form style={{ display: "grid", gap: "0.8rem" }} onSubmit={(e) => { e.preventDefault(); send("appeal", { reason: statement }); }}>
+        <form style={{ display: "grid", gap: "0.8rem" }} onSubmit={(e) => { e.preventDefault(); send("appeal", { reason: statement, files }); }}>
           <label className="field">
             Why the ruling is wrong
             <textarea required minLength={10} maxLength={280} value={statement} onChange={(e) => setStatement(e.target.value)} />
           </label>
-          <button className="button quiet" disabled={busy}>{busy ? "Appealing…" : "Send to a human reviewer"}</button>
+          <Attachments value={files} onChange={setFiles} onBusy={setUploading} />
+          <button className="button quiet" disabled={busy || uploading}>{busy ? "Appealing…" : "Send to a human reviewer"}</button>
         </form>,
         "The money stays held while you can appeal. A human reviewer's decision is final."
       );

@@ -47,7 +47,8 @@ const MIN_CLAIM_WINDOW_MS: u64 = 60_000; // 1 minute (demo)
 const MAX_CLAIM_WINDOW_MS: u64 = 90 * 24 * 60 * 60 * 1000; // 90 days
 const MAX_TEXT: usize = 280;
 const MAX_HASH: usize = 128;
-const MAX_EVIDENCE: usize = 3_000;
+// Encrypted evidence: a statement plus up to five file references.
+const MAX_EVIDENCE: usize = 8_000;
 const MAX_DETAILS: usize = 2_000;
 
 // ---------------------------------------------------------------- types
@@ -713,9 +714,14 @@ impl Recourse {
     }
 
     /// Receipt holder or merchant appeals an AI ruling once, inside the window.
-    pub fn appeal(&mut self, token_id: TokenId, reason: String) {
+    /// `evidence` is optional encrypted supporting material (a statement and
+    /// file references) for the human reviewer.
+    pub fn appeal(&mut self, token_id: TokenId, reason: String, evidence: Option<String>) {
         let caller = env::predecessor_account_id();
         check_text(&reason, MAX_TEXT, "Reason");
+        if let Some(ev) = &evidence {
+            check_text(ev, MAX_EVIDENCE, "Evidence");
+        }
         let holder = self.holder(&token_id);
         let now = now_ms();
         let review_ms = self.config.review_ms;
@@ -729,6 +735,10 @@ impl Recourse {
         require!(!ruling.by_human, "Human rulings are final");
         require!(now < ruling.appeal_ends, "Appeal window has ended");
         e.status = Status::Appealed;
+        if let Some(ev) = evidence {
+            self.evidence.insert(format!("{token_id}:appeal"), ev);
+        }
+        let e = self.escrows.get_mut(&token_id).expect("Receipt not found");
         e.review = Some(Review {
             kind: ReviewKind::Appeal,
             reason,
@@ -901,6 +911,10 @@ impl Recourse {
     }
 
     /// Encrypted evidence for a receipt: (buyer's, merchant's).
+    pub fn get_appeal_evidence(&self, token_id: TokenId) -> Option<String> {
+        self.evidence.get(&format!("{token_id}:appeal")).cloned()
+    }
+
     pub fn get_evidence(&self, token_id: TokenId) -> (Option<String>, Option<String>) {
         (
             self.evidence.get(&format!("{token_id}:buyer")).cloned(),

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { act, cleanError } from "@/lib/chain";
 import { sealEvidence, sha256 } from "@/lib/evidence";
+import { cleanAttachments } from "@/lib/files";
 import { accountOf, currentPerson } from "@/lib/identity";
 import { judge } from "@/lib/judge";
 
@@ -18,7 +19,7 @@ function evidenceFrom(body: any) {
   if (photo && (!/^https:\/\//.test(photo) || photo.length > 300)) {
     throw new Error("Photo links must start with https://.");
   }
-  return sealEvidence({ statement, photo });
+  return sealEvidence({ statement, photo, files: cleanAttachments(body.files) });
 }
 
 export async function POST(req: Request) {
@@ -54,7 +55,9 @@ export async function POST(req: Request) {
       case "appeal": {
         const reason = String(body.reason || "").trim();
         if (reason.length < 10 || reason.length > 280) return bad("Say why you're appealing in 10 to 280 characters.");
-        out = await act(signer, "appeal", { token_id, reason }, { tgas: 30n });
+        const files = cleanAttachments(body.files);
+        const evidence = files.length ? sealEvidence({ statement: reason, files }).sealed : null;
+        out = await act(signer, "appeal", { token_id, reason, evidence }, { tgas: 30n });
         break;
       }
       case "finalize":

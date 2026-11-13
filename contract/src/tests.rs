@@ -216,7 +216,7 @@ fn appeal_goes_to_human_and_is_final() {
     ctx(judge(), 5_000, 0);
     c.post_ruling(id.clone(), 10_000, "ruling".into(), "att-1".into(), "{}".into());
     ctx(shop(), 6_000, 0);
-    c.appeal(id.clone(), "Item was as described".into());
+    c.appeal(id.clone(), "Item was as described".into(), None);
     assert_eq!(status(&c, &id), Status::Appealed);
     ctx(owner(), 7_000, 0);
     c.resolve_review(id.clone(), 4_000, "note".into(), "Split after review".into());
@@ -449,4 +449,20 @@ fn receipt_nft_shows_the_product_photo() {
         nft.metadata.unwrap().media.unwrap(),
         "https://recourse-market.vercel.app/products/market-tote.jpg"
     );
+}
+
+#[test]
+fn appeal_can_carry_evidence() {
+    let mut c = setup();
+    let id = buy(&mut c, buyer(), 2_000);
+    ctx(buyer(), 3_000, 0);
+    c.open_claim(id.clone(), "damaged".into(), "h".into(), "ct".into());
+    ctx(shop(), 4_000, 0);
+    c.respond(id.clone(), "hm".into(), "ct".into());
+    ctx(judge(), 5_000, 0);
+    c.post_ruling(id.clone(), 0, "rh".into(), "att".into(), "{}".into());
+    ctx(buyer(), 6_000, 0);
+    c.appeal(id.clone(), "The photo shows the tear".into(), Some("sealed-files".into()));
+    assert_eq!(c.get_appeal_evidence(id.clone()), Some("sealed-files".into()));
+    assert_eq!(status(&c, &id), Status::Appealed);
 }

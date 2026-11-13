@@ -4,7 +4,9 @@
 
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
-export type Evidence = { statement: string; photo?: string | null };
+import type { Attachment } from "./files";
+
+export type Evidence = { statement: string; photo?: string | null; files?: Attachment[] };
 
 function key(): Buffer {
   const secret = process.env.EVIDENCE_SECRET || process.env.NEAR_MASTER_KEY;
@@ -18,7 +20,12 @@ export function sha256(text: string): string {
 
 /** Returns the canonical JSON (what gets hashed), its hash, and the ciphertext. */
 export function sealEvidence(e: Evidence) {
-  const plain = JSON.stringify({ statement: e.statement, photo: e.photo || null });
+  // Files are only included when there are some, so older evidence hashes the same way.
+  const plain = JSON.stringify(
+    e.files && e.files.length
+      ? { statement: e.statement, photo: e.photo || null, files: e.files }
+      : { statement: e.statement, photo: e.photo || null }
+  );
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key(), iv);
   const ct = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);

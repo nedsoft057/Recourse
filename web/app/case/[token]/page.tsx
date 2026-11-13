@@ -8,6 +8,7 @@ import { statusFor } from "@/lib/status";
 import type { BuyerRecord, ListingView, ReceiptView } from "@/lib/types";
 import { Thumb } from "@/components/Thumb";
 import { Seal } from "@/components/Seal";
+import { EvidenceFiles } from "@/components/EvidenceFiles";
 import { When, Countdown } from "@/components/When";
 import { CaseActions, type CaseMode } from "./CaseActions";
 
@@ -40,6 +41,7 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
     view<ListingView | null>("get_listing", { listing_id: e.listing_id }),
     view<[string | null, string | null]>("get_evidence", { token_id: token }),
   ]);
+  const appealSealed = r.escrow.review?.kind === "Appeal" ? await view<string | null>("get_appeal_evidence", { token_id: token }) : null;
   const record = e.claim ? await view<BuyerRecord>("get_buyer", { account_id: e.claim.claimant }) : null;
   const me = await currentPerson();
   const mine = accountOf(me.key);
@@ -77,6 +79,7 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
       : null;
   const buyerEv = canSeeEvidence ? openEvidence(evidence[0]) : null;
   const sellerEv = canSeeEvidence ? openEvidence(evidence[1]) : null;
+  const appealEv = canSeeEvidence ? openEvidence(appealSealed) : null;
 
   return (
     <div className="narrow" style={{ maxWidth: "40rem", padding: "2rem var(--gutter) 4rem", display: "grid", gap: "1rem" }}>
@@ -192,7 +195,7 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
         </section>
       )}
 
-      {canSeeEvidence && (buyerEv || sellerEv) && (
+      {canSeeEvidence && (buyerEv || sellerEv || appealEv) && (
         <section className="card" style={{ padding: "1rem 1.1rem", display: "grid", gap: "0.9rem" }} aria-label="Evidence">
           <p className="small muted">
             Evidence is stored on-chain encrypted. Only the buyer, the seller, the reviewer and the AI judge can read it.
@@ -202,6 +205,7 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
               <p className="label">From {name(e.claim!.claimant)}</p>
               <p>{buyerEv.statement}</p>
               {buyerEv.photo && <a href={buyerEv.photo} target="_blank" rel="noreferrer">Photo</a>}
+              <EvidenceFiles token={token} side="buyer" files={buyerEv.files} />
             </div>
           )}
           {sellerEv && (
@@ -209,6 +213,14 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
               <p className="label">From {seller}</p>
               <p>{sellerEv.statement}</p>
               {sellerEv.photo && <a href={sellerEv.photo} target="_blank" rel="noreferrer">Photo</a>}
+              <EvidenceFiles token={token} side="merchant" files={sellerEv.files} />
+            </div>
+          )}
+          {appealEv && (
+            <div>
+              <p className="label">With the appeal, from {name(e.review!.requested_by)}</p>
+              <p>{appealEv.statement}</p>
+              <EvidenceFiles token={token} side="appeal" files={appealEv.files} />
             </div>
           )}
         </section>
