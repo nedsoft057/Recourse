@@ -8,6 +8,7 @@ Recourse turns any sale into a protected payment link. The buyer pays in USDC; p
 - **Contract (testnet):** [`pay.favour-recourse.testnet`](https://testnet.nearblocks.io/address/pay.favour-recourse.testnet)
 - **Track:** NFTs That Do Something (receipts are NFTs that hold funds and carry refund rights)
 - **Built for:** NEAR HACKATHON, November 2026
+- **Full architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Built by:** Favour ([@Favour_D_Crier](https://x.com/Favour_D_Crier))
 
 ## The problem
@@ -21,6 +22,29 @@ Under the hood this is escrow of the buyer's own payment; the seller deposits no
 1. **Portable protection.** Refund rights belong to whoever holds the receipt NFT. Resell the item, transfer the receipt, and the new owner can claim.
 2. **Seller reputation that sets the terms.** A seller's on-chain record decides how much of each payment is held: 50% for new sellers, 30% established, 15% trusted, 100% for sellers under review.
 3. **A complete dispute process.** Claim, seller response, AI ruling with a signed record, a locked appeal window, human review when the AI can't decide, and timeouts so money is never stuck.
+
+## Where the money is, step by step
+
+The most common question: *why can the seller get paid if the buyer never confirmed the item arrived?* Because the **claim window** is the protection. Silence until the window closes means the sale stands, the same rule card chargebacks, PayPal and Amazon's A-to-z Guarantee use. Waiting for the buyer to confirm would let a forgetful or dishonest buyer lock an honest seller's money forever.
+
+**Worked example.** Atelier Ama, a New seller, sells a 100 USDC bag with a 7-day claim window.
+
+| When | What happens | Seller has | Held in the contract | Buyer can |
+| --- | --- | --- | --- | --- |
+| Day 0, buyer pays | 50 USDC goes to Ama's balance at once (New tier: 50% held). 50 USDC is locked against receipt #12, which the buyer now owns | 50 | 50 | Claim, extend once, or pass the receipt on |
+| Day 6 | The receipt shows a red "closing soon" reminder: claim or extend now, or the held 50 goes to the seller | 50 | 50 | Same |
+| Day 7, no claim | The window closes. Ama's Seller desk shows **Collect 1 finished order**; one tap moves the 50 to her balance. Her completed-order count goes up | 100 | 0 | Nothing more: the sale is final |
+
+**What can change that:**
+
+1. **The parcel is late.** On day 5 the buyer presses **Not arrived yet? Extend window**. The window moves to day 14 (it extends by the original length, at most 7 days, and only once per receipt). Ama can't collect until it closes.
+2. **It arrives damaged.** The buyer presses **Claim** inside the window, picks a reason and adds photos. The 50 freezes; it can't be collected, and the receipt can't be passed on. Ama has 72 hours to answer.
+3. **Ama answers.** The AI judge reads both sides and rules. The money stays frozen for 48 more hours so either side can appeal to a human. Then it goes where the decision says: all back to the buyer, all to Ama, or split.
+4. **Ama doesn't answer in 72 hours.** Anyone can trigger the default: the 50 goes back to the receipt holder.
+5. **The buyer lies** ("never arrived" when it did). A claim never refunds anyone by itself. Ama shows tracking marked delivered, a handover photo or the buyer's own "got it, thanks". Rule 1 of the judge's policy releases to the seller when there is specific proof of delivery. The rejected claim goes on the buyer's **claim record**, which sellers see on every case and the judge weighs (but never on its own).
+6. **The buyer resold the bag** and passed the receipt on. Everything above applies to the new holder instead; the original buyer can no longer claim.
+
+**What is never at risk:** the seller's up-front share (50 here) is theirs from the moment of payment. A claim can only ever be about the held part. A higher-trust seller has less held: 30% established, 15% trusted.
 
 ## How it works for real users
 
@@ -72,9 +96,10 @@ The demo runs on NEAR testnet with prepared accounts, so you don't need a wallet
 | 7 | Wait 3 minutes, then press **Carry out the ruling** (anyone can) | The receipt closes as Refunded, Split or Settled, and the amount appears in the right person's **Ready to withdraw**. **Withdraw to wallet** sends real test USDC |
 | 8 | Instead of 7: as Bayo or the seller, **Appeal** inside the window | "Ruling appealed". Switch to **Reviewer** → **Review queue** → open the case → pick a decision, write a reason → **Record final decision** |
 | 9 | Variation: open a claim and let the seller ignore it for 3 minutes | "The seller didn't respond in time" → **Refund ... to the receipt holder** |
-| 10 | Variation: buy something and don't claim. After the 5-minute window, open **Seller desk** as the seller | **Collect 1 finished order** pays the held part to the seller, and their completed-order count goes up |
+| 10 | Variation: buy, then on **Purchases** press **Not arrived yet? Extend window** | The window moves back by its original length and the receipt says "extended once". The button disappears: it works once per receipt |
+| 11 | Variation: buy something and don't claim. After the 5-minute window, open **Seller desk** as the seller | **Collect 1 finished order** pays the held part to the seller, and their completed-order count goes up |
 
-**Seller reputation in action:** Atelier Ama has lost several test claims, so she is **under review**. Open any of her links and the checkout shows "Seller under review" and holds the full payment for the buyer. Loom House, a New seller, has half held.
+**Reputation in action:** the automated live-site check runs disputes as Field Kit Supply, so its record changes over time; once a seller has lost 3 or more claims, its checkout shows "Seller under review" and holds the full payment. Every case page also shows the claimant's own record: claims opened, won and rejected.
 
 If the AI judge has no API key, or can't decide, step 6 sends the case to human review instead and shows the reason on the case page. That's the designed fallback (see below), and the reviewer flow in step 8 finishes the case.
 
@@ -131,6 +156,8 @@ Seller ──respond (encrypted evidence)──▶ backend runs the AI judge
 
 **Money never moves on an AI ruling directly.** It stays locked through the appeal window, and `finalize` carries out the ruling afterwards. One appeal per ruling, decided by a human, and human decisions are final. If a review isn't decided in time, `review_timeout` refunds the holder. If the seller never responds, `default_judgment` refunds the holder.
 
+**Buyer claim records.** The contract counts each account's claims: opened, won (decided at least half for the buyer, or refunded by the seller) and rejected. Sellers see the record on the case page; the judge gets it in the case file, under policy rule 7: context only, never decisive, and no penalty for a first claim.
+
 **Seller tiers** are computed in the contract on every payment. Loss rate = lost disputes ÷ finished orders (finished means settled, voluntarily refunded or finally ruled). A seller with no finished orders is New, so there's never a division by zero. Flagging needs at least 3 losses, so one bad case can't flag a small seller. A seller can raise their own held share but never set it below their tier.
 
 ## What is trusted (and what a v2 removes)
@@ -146,11 +173,11 @@ Payments are testnet-only, in test USDC. Cross-chain payment through NEAR Intent
 
 ## Contract interface
 
-Write methods: `register_merchant`, `approve_merchant` / `suspend_merchant` (owner only), `add_storage`, `add_storage_for`, `set_min_lock_bps`, `create_listing`, `set_listing_active`, `ft_on_transfer` (payments), `release`, `release_many`, `refund`, `open_claim`, `respond`, `default_judgment`, `post_ruling` (judge only), `flag_for_review` (judge only), `appeal`, `finalize`, `resolve_review` (owner only), `review_timeout`, `withdraw`, plus the NEP-171 transfer methods (blocked while a receipt is in dispute).
+Write methods: `register_merchant`, `approve_merchant` / `suspend_merchant` (owner only), `add_storage`, `add_storage_for`, `set_min_lock_bps`, `create_listing`, `set_listing_active`, `ft_on_transfer` (payments), `extend_window`, `release`, `release_many`, `refund`, `open_claim`, `respond`, `default_judgment`, `post_ruling` (judge only), `flag_for_review` (judge only), `appeal`, `finalize`, `resolve_review` (owner only), `review_timeout`, `withdraw`, plus the NEP-171 transfer methods (blocked while a receipt is in dispute).
 
-View methods: `get_config`, `get_merchant`, `get_listing`, `get_listings`, `get_receipt`, `get_merchant_receipts`, `get_evidence`, `get_balance`, `nft_token`, `nft_tokens_for_owner`, `nft_metadata`.
+View methods: `get_config`, `get_merchant`, `get_listing`, `get_listings`, `get_receipt`, `get_merchant_receipts`, `get_evidence`, `get_balance`, `get_buyer`, `nft_token`, `nft_tokens_for_owner`, `nft_metadata`.
 
-The 21 unit tests in [`contract/src/tests.rs`](contract/src/tests.rs) cover: payments must match the price exactly; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, re-register to reset their record, or lower their held share below their tier; ruling funds stay locked until the appeal window closes; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no paying out the same order twice; evidence is stored per side; tiers use finished orders as the denominator.
+The 26 unit tests in [`contract/src/tests.rs`](contract/src/tests.rs) cover: payments must match the price exactly; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, re-register to reset their record, or lower their held share below their tier; ruling funds stay locked until the appeal window closes; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no paying out the same order twice; evidence is stored per side; tiers use finished orders as the denominator; the holder (and only the holder) can extend the window, once; collection waits for the extended window; buyer records count claims won and lost.
 
 ## Run it yourself
 
