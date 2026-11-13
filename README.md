@@ -6,7 +6,7 @@ When you pay for something through Recourse, part of your payment goes to the se
 
 Built for NEAR HACKATHON, track: **NFTs That Do Something**.
 
-> Status: work in progress. The contract and tests are in place; the storefront, dispute engine and full run-through steps are coming next.
+> Status: work in progress. Contract live on testnet; storefront live; dispute engine and full run-through steps coming next.
 
 ## What it is, honestly
 
