@@ -190,7 +190,7 @@ const T0 = Date.now();
   const page = await ctx.newPage();
   await page.goto(SITE);
   if (!ONLY.length || ONLY.some((o) => "13-collect".startsWith(o))) {
-    shared.collect = await freshPurchase(page, { title: "Card wallet", price: "15", description: "Slim hand-stitched leather card wallet.", buyer: "buyer-a" });
+    shared.collect = await freshPurchase(page, { title: "Card wallet", price: "15", description: "Slim hand-stitched leather card wallet.", buyer: "buyer-b" });
   }
   if (!ONLY.length || ONLY.some((o) => "14-silent".startsWith(o))) {
     shared.silent = await freshPurchase(page, { title: "Aso-oke cushion cover", price: "18", description: "Hand-woven aso-oke cushion cover, 45 cm.", buyer: "buyer-b" });

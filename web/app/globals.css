@@ -652,3 +652,18 @@ h1, h2, h3 { font-family: var(--sans); font-weight: 600; letter-spacing: -0.035e
 
 .wordmark, .footer-brand { display: inline-flex; align-items: center; gap: 0.5rem; }
 .logo-mark { display: block; border-radius: 7px; flex: none; }
+
+/* Content must never be wider than its box. */
+.receipt-side { display: grid; gap: 0.5rem; min-width: 0; }
+.receipt-side .button, .receipt-actions .button, .receipt-actions select { width: 100%; }
+.receipt-body, .card, .stub, .verify, .verify dd { min-width: 0; }
+.verify dd { overflow-wrap: anywhere; word-break: normal; }
+@media (max-width: 760px) {
+  .receipt-side { grid-column: 1 / -1; }
+  .receipt-actions { grid-template-columns: 1fr; }
+  .verify dl { grid-template-columns: 1fr; gap: 0.1rem; }
+  .verify dt { margin-top: 0.55rem; }
+  .verify dt:first-child { margin-top: 0; }
+  .tiles { grid-template-columns: 1fr; }
+  .tiles > * { display: flex; align-items: center; gap: 0.6rem; }
+}

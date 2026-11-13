@@ -108,7 +108,7 @@ export default async function Purchases() {
                     )}
                   </ul>
                 </div>
-                <div style={{ display: "grid", gap: "0.5rem" }}>
+                <div className="receipt-side">
                 <Link className="button quiet" href={`/case/${r.token_id}`}>
                   {e.status === "Locked" && now < e.claim_ends ? "Something wrong? Claim" : "Details"}
                 </Link>
