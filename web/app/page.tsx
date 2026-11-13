@@ -40,7 +40,7 @@ export default function Landing() {
             </li>
             <li className="card">
               <h3>Your buyer pays</h3>
-              <p className="muted">In USDC on NEAR, or from Base, Solana and other chains. They get a receipt that holds part of the payment.</p>
+              <p className="muted">In USDC on NEAR. They get a receipt, an NFT that holds part of the payment until the window closes.</p>
             </li>
             <li className="card">
               <h3>The window closes</h3>
