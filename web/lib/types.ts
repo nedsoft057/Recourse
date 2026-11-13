@@ -63,6 +63,7 @@ export type Ruling = {
   ruled_at: number;
   appeal_ends: number;
   by_human: boolean;
+  details: string;
 };
 
 export type Review = {

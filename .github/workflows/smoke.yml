@@ -37,5 +37,24 @@ jobs:
           PASS=$(curl -s -c jar -b jar -X POST "$SITE/api/act" -H "$J" -d "{\"action\":\"pass_on\",\"token_id\":\"$TOKEN\",\"to\":\"buyer-b\"}")
           echo "pass on: $PASS"
           echo "$PASS" | jq -e .ok >/dev/null || exit 1
+          sleep 3
+          curl -s -c jar -b jar -X POST "$SITE/api/identity" -H "$J" -d '{"as":"buyer-b"}'; echo
+          CLAIM=$(curl -s -c jar -b jar -X POST "$SITE/api/dispute" -H "$J" -d "{\"action\":\"open_claim\",\"token_id\":\"$TOKEN\",\"reason\":\"damaged\",\"statement\":\"The stitching on the strap came apart the first day I used it.\"}")
+          echo "claim (Bayo): $CLAIM"
+          echo "$CLAIM" | jq -e .ok >/dev/null || exit 1
+          curl -s -c jar -b jar -X POST "$SITE/api/identity" -H "$J" -d '{"as":"atelier"}'; echo
+          RESP=$(curl -s -c jar -b jar -X POST "$SITE/api/dispute" -H "$J" -d "{\"action\":\"respond\",\"token_id\":\"$TOKEN\",\"statement\":\"Every wallet is checked before posting; we have no photo of this one.\"}")
+          echo "respond + judge: $RESP"
+          echo "$RESP" | jq -e .ok >/dev/null || exit 1
+          sleep 3
+          STATUS=$(curl -s "$SITE/case/$TOKEN" | grep -o 'Sent to a human reviewer\|AI judge ruled[^<]*' | head -1)
+          echo "case page shows: $STATUS"
+          if echo "$RESP" | grep -q "human review"; then
+            curl -s -c jar -b jar -X POST "$SITE/api/identity" -H "$J" -d '{"as":"reviewer"}'; echo
+            RES=$(curl -s -c jar -b jar -X POST "$SITE/api/dispute" -H "$J" -d "{\"action\":\"resolve\",\"token_id\":\"$TOKEN\",\"buyer_bps\":10000,\"note\":\"Seller has no evidence the item left in good condition.\"}")
+            echo "reviewer decides: $RES"
+            echo "$RES" | jq -e .ok >/dev/null || exit 1
+          fi
+          sleep 3
           curl -s -X POST https://test.rpc.fastnear.com -H "$J" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"recourse.favour-recourse.testnet\",\"method_name\":\"get_receipt\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $TOKEN | base64 -w0)\"}}" \
             | jq -r '.result.result | implode | fromjson | "receipt \(.token_id): holder \(.holder), locked \(.escrow.locked), status \(.escrow.status)"'

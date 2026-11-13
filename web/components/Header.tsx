@@ -12,6 +12,7 @@ export async function Header() {
           <Link href="/new">Create a link</Link>
           <Link href="/sell">Seller desk</Link>
           <Link href="/purchases">Purchases</Link>
+          {me.role === "reviewer" && <Link href="/review">Review queue</Link>}
         </nav>
         <IdentitySwitcher people={PEOPLE} current={me.key} />
       </div>

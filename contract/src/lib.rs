@@ -41,6 +41,8 @@ const MIN_CLAIM_WINDOW_MS: u64 = 60_000; // 1 minute (demo)
 const MAX_CLAIM_WINDOW_MS: u64 = 90 * 24 * 60 * 60 * 1000; // 90 days
 const MAX_TEXT: usize = 280;
 const MAX_HASH: usize = 128;
+const MAX_EVIDENCE: usize = 3_000;
+const MAX_DETAILS: usize = 2_000;
 
 // ---------------------------------------------------------------- types
 
@@ -52,6 +54,7 @@ pub enum StorageKey {
     Escrows,
     Balances,
     MerchantReceipts,
+    Evidence,
     NftOwners,
     NftMetadata,
     NftEnumeration,
@@ -197,6 +200,9 @@ pub struct Ruling {
     pub ruled_at: u64,
     pub appeal_ends: u64,
     pub by_human: bool,
+    /// Public record of how the decision was reached: the AI ruling JSON plus
+    /// the enclave signature reference, or the human reviewer's note.
+    pub details: String,
 }
 
 #[near(serializers = [borsh, json])]
@@ -282,6 +288,9 @@ pub struct Recourse {
     escrows: LookupMap<TokenId, Escrow>,
     balances: LookupMap<AccountId, U128>,
     merchant_receipts: LookupMap<AccountId, Vec<TokenId>>,
+    /// Encrypted evidence, keyed "<token_id>:buyer" and "<token_id>:merchant".
+    /// Only its hash is part of the claim; the backend and the judge decrypt it.
+    evidence: LookupMap<String, String>,
     next_receipt: u64,
 }
 
@@ -337,6 +346,7 @@ impl Recourse {
             escrows: LookupMap::new(StorageKey::Escrows),
             balances: LookupMap::new(StorageKey::Balances),
             merchant_receipts: LookupMap::new(StorageKey::MerchantReceipts),
+            evidence: LookupMap::new(StorageKey::Evidence),
             next_receipt: 1,
         }
     }
@@ -535,11 +545,19 @@ impl Recourse {
 
     // ------------------------------------------------------------ disputes
 
-    pub fn open_claim(&mut self, token_id: TokenId, reason: String, evidence_hash: String) {
+    pub fn open_claim(
+        &mut self,
+        token_id: TokenId,
+        reason: String,
+        evidence_hash: String,
+        evidence: String,
+    ) {
         let caller = env::predecessor_account_id();
         require!(self.holder(&token_id) == caller, "Only the receipt holder");
         check_text(&reason, 64, "Reason");
         check_text(&evidence_hash, MAX_HASH, "Evidence hash");
+        check_text(&evidence, MAX_EVIDENCE, "Evidence");
+        self.evidence.insert(format!("{token_id}:buyer"), evidence);
         let now = now_ms();
         let response_ms = self.config.response_ms;
         let e = self.escrows.get_mut(&token_id).expect("Receipt not found");
@@ -561,9 +579,11 @@ impl Recourse {
         );
     }
 
-    pub fn respond(&mut self, token_id: TokenId, evidence_hash: String) {
+    pub fn respond(&mut self, token_id: TokenId, evidence_hash: String, evidence: String) {
         let caller = env::predecessor_account_id();
         check_text(&evidence_hash, MAX_HASH, "Evidence hash");
+        check_text(&evidence, MAX_EVIDENCE, "Evidence");
+        self.evidence.insert(format!("{token_id}:merchant"), evidence);
         let now = now_ms();
         let e = self.escrows.get_mut(&token_id).expect("Receipt not found");
         require!(e.merchant == caller, "Only the merchant");
@@ -593,8 +613,10 @@ impl Recourse {
         buyer_bps: u16,
         ruling_hash: String,
         attestation_ref: String,
+        details: String,
     ) {
         self.assert_judge();
+        check_text(&details, MAX_DETAILS, "Details");
         require!(buyer_bps as u128 <= BPS, "At most 10000 bps");
         check_text(&ruling_hash, MAX_HASH, "Ruling hash");
         check_text(&attestation_ref, MAX_TEXT, "Attestation reference");
@@ -614,6 +636,7 @@ impl Recourse {
             ruled_at: now,
             appeal_ends: now + appeal_ms,
             by_human: false,
+            details,
         });
         event(
             "ruling_posted",
@@ -682,8 +705,15 @@ impl Recourse {
     }
 
     /// Owner decides a flagged case or an appeal. Final and immediate.
-    pub fn resolve_review(&mut self, token_id: TokenId, buyer_bps: u16, note_hash: String) {
+    pub fn resolve_review(
+        &mut self,
+        token_id: TokenId,
+        buyer_bps: u16,
+        note_hash: String,
+        note: String,
+    ) {
         self.assert_owner();
+        check_text(&note, MAX_DETAILS, "Note");
         require!(buyer_bps as u128 <= BPS, "At most 10000 bps");
         check_text(&note_hash, MAX_HASH, "Note hash");
         let now = now_ms();
@@ -699,6 +729,7 @@ impl Recourse {
             ruled_at: now,
             appeal_ends: now,
             by_human: true,
+            details: note,
         });
         self.execute(&token_id, buyer_bps);
     }
@@ -819,6 +850,14 @@ impl Recourse {
             .take(limit.unwrap_or(50).min(100) as usize)
             .filter_map(|id| self.get_receipt(id))
             .collect()
+    }
+
+    /// Encrypted evidence for a receipt: (buyer's, merchant's).
+    pub fn get_evidence(&self, token_id: TokenId) -> (Option<String>, Option<String>) {
+        (
+            self.evidence.get(&format!("{token_id}:buyer")).cloned(),
+            self.evidence.get(&format!("{token_id}:merchant")).cloned(),
+        )
     }
 
     pub fn get_balance(&self, account_id: AccountId) -> U128 {

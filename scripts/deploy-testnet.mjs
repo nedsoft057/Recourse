@@ -22,6 +22,7 @@ const WINDOW_MS = Number(process.env.WINDOW_MINUTES || 3) * 60_000;
 const REVIEW_MS = Number(process.env.REVIEW_MINUTES || 10) * 60_000;
 const RESET = process.env.RESET === "true";
 const RPC = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
+const FUNDER = process.env.FUNDER_ACCOUNT || "favour-recourse-fund.testnet";
 
 const near = (n) => BigInt(utils.format.parseNearAmount(String(n)));
 const TGAS = 1_000_000_000_000n;
@@ -36,7 +37,7 @@ const ids = {
   buyers: [`buyer-a.${M}`, `buyer-b.${M}`],
 };
 const funding = {
-  [ids.recourse]: "3.8",
+  [ids.recourse]: "6",
   [ids.token]: "1.8",
   [ids.judge]: "0.1",
   [ids.relayer]: "0.1",
@@ -51,7 +52,7 @@ const shopNames = {
 
 const keyPair = KeyPair.fromString(SK);
 const keyStore = new keyStores.InMemoryKeyStore();
-for (const id of [M, ...Object.keys(funding)]) await keyStore.setKey("testnet", id, keyPair);
+for (const id of [M, FUNDER, ...Object.keys(funding)]) await keyStore.setKey("testnet", id, keyPair);
 const conn = await connect({ networkId: "testnet", nodeUrl: RPC, keyStore });
 const acct = (id) => conn.account(id);
 const master = await acct(M);
@@ -110,6 +111,16 @@ if (RESET) {
   }
 }
 
+// 0b. Move the extra testnet funding account's NEAR to the master account.
+if (await exists(FUNDER)) {
+  const funder = await acct(FUNDER);
+  const avail = BigInt((await funder.getAccountBalance()).available);
+  if (avail > near("1")) {
+    await funder.sendMoney(M, avail - near("0.1"));
+    console.log(`  moved ${utils.format.formatNearAmount(String(avail - near("0.1")), 2)} NEAR from ${FUNDER}`);
+  }
+}
+
 // 1. Accounts.
 console.log(`Master: ${M}`);
 for (const id of Object.keys(funding)) await ensureAccount(id);
@@ -121,10 +132,27 @@ if (!(await initialised(ids.token, "ft_metadata"))) {
   await call(ids.token, ids.token, "new", { owner: M });
 }
 
-// 3. Recourse.
+// 3. Recourse. If the new code can't read the old state (its layout changed),
+// start the contract fresh: this is a testnet demo, so old demo receipts can go.
 await (await acct(ids.recourse)).deployContract(fs.readFileSync("out/recourse.wasm"));
 console.log(`deployed ${ids.recourse}`);
-if (!(await initialised(ids.recourse, "get_config"))) {
+let recourseState = "ok";
+try {
+  await view(ids.recourse, "get_config");
+  await view(ids.recourse, "get_listings", { from_index: 0, limit: 1 });
+} catch (e) {
+  recourseState = /not initiali[sz]ed/i.test(String(e)) ? "uninit" : "broken";
+  console.log(`  state check: ${recourseState} (${String(e).slice(0, 160)})`);
+}
+if (recourseState === "broken") {
+  await (await acct(ids.recourse)).deleteAccount(M);
+  console.log(`- deleted ${ids.recourse} (state layout changed)`);
+  await ensureAccount(ids.recourse);
+  await (await acct(ids.recourse)).deployContract(fs.readFileSync("out/recourse.wasm"));
+  console.log(`redeployed ${ids.recourse}`);
+  recourseState = "uninit";
+}
+if (recourseState === "uninit") {
   await call(ids.recourse, ids.recourse, "new", {
     owner: M,
     judge: ids.judge,
@@ -179,7 +207,7 @@ async function available(id) {
 for (const [id, min, top] of [
   ...ids.buyers.map((b) => [b, "0.3", "0.5"]),
   ...ids.shops.map((s) => [s, "0.12", "0.2"]),
-  [ids.judge, "0.08", "0.15"],
+  [ids.judge, "0.2", "0.4"],
 ]) {
   if ((await available(id)) < near(min)) {
     await master.sendMoney(id, near(top));

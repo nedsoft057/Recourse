@@ -174,11 +174,11 @@ fn ruling_funds_stay_locked_until_appeal_window_closes() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 3_000, 0);
-    c.open_claim(id.clone(), "not_delivered".into(), "hash-b".into());
+    c.open_claim(id.clone(), "not_delivered".into(), "hash-b".into(), "ct".into());
     ctx(shop(), 4_000, 0);
-    c.respond(id.clone(), "hash-m".into());
+    c.respond(id.clone(), "hash-m".into(), "ct-m".into());
     ctx(judge(), 5_000, 0);
-    c.post_ruling(id.clone(), 10_000, "ruling".into(), "att-1".into());
+    c.post_ruling(id.clone(), 10_000, "ruling".into(), "att-1".into(), "{}".into());
     assert_eq!(status(&c, &id), Status::Ruled);
     // Nothing credited to the buyer yet.
     assert_eq!(c.get_balance(buyer()).0, 0);
@@ -196,11 +196,11 @@ fn cannot_finalize_inside_appeal_window() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 3_000, 0);
-    c.open_claim(id.clone(), "not_delivered".into(), "hash-b".into());
+    c.open_claim(id.clone(), "not_delivered".into(), "hash-b".into(), "ct".into());
     ctx(shop(), 4_000, 0);
-    c.respond(id.clone(), "hash-m".into());
+    c.respond(id.clone(), "hash-m".into(), "ct-m".into());
     ctx(judge(), 5_000, 0);
-    c.post_ruling(id.clone(), 10_000, "ruling".into(), "att-1".into());
+    c.post_ruling(id.clone(), 10_000, "ruling".into(), "att-1".into(), "{}".into());
     ctx(buyer(), 6_000, 0);
     c.finalize(id);
 }
@@ -210,16 +210,16 @@ fn appeal_goes_to_human_and_is_final() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 3_000, 0);
-    c.open_claim(id.clone(), "not_as_described".into(), "hash-b".into());
+    c.open_claim(id.clone(), "not_as_described".into(), "hash-b".into(), "ct".into());
     ctx(shop(), 4_000, 0);
-    c.respond(id.clone(), "hash-m".into());
+    c.respond(id.clone(), "hash-m".into(), "ct-m".into());
     ctx(judge(), 5_000, 0);
-    c.post_ruling(id.clone(), 10_000, "ruling".into(), "att-1".into());
+    c.post_ruling(id.clone(), 10_000, "ruling".into(), "att-1".into(), "{}".into());
     ctx(shop(), 6_000, 0);
     c.appeal(id.clone(), "Item was as described".into());
     assert_eq!(status(&c, &id), Status::Appealed);
     ctx(owner(), 7_000, 0);
-    c.resolve_review(id.clone(), 4_000, "note".into());
+    c.resolve_review(id.clone(), 4_000, "note".into(), "Split after review".into());
     assert_eq!(status(&c, &id), Status::Split);
     assert_eq!(c.get_balance(buyer()).0, 20 * USDC);
     assert_eq!(c.get_balance(shop()).0, 80 * USDC);
@@ -232,9 +232,9 @@ fn unanswered_review_refunds_holder() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 3_000, 0);
-    c.open_claim(id.clone(), "damaged".into(), "hash-b".into());
+    c.open_claim(id.clone(), "damaged".into(), "hash-b".into(), "ct".into());
     ctx(shop(), 4_000, 0);
-    c.respond(id.clone(), "hash-m".into());
+    c.respond(id.clone(), "hash-m".into(), "ct-m".into());
     ctx(judge(), 5_000, 0);
     c.flag_for_review(id.clone(), "Runs disagreed".into());
     assert_eq!(status(&c, &id), Status::UnderReview);
@@ -249,7 +249,7 @@ fn silent_merchant_loses_by_default() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 3_000, 0);
-    c.open_claim(id.clone(), "not_delivered".into(), "hash-b".into());
+    c.open_claim(id.clone(), "not_delivered".into(), "hash-b".into(), "ct".into());
     ctx(acc("anyone.testnet"), 3_000 + 3 * MIN, 0);
     c.default_judgment(id.clone());
     assert_eq!(status(&c, &id), Status::Refunded);
@@ -263,7 +263,7 @@ fn resold_receipt_refunds_new_holder() {
     ctx(buyer(), 3_000, 1);
     c.nft_transfer(buyer2(), id.clone(), None, None);
     ctx(buyer2(), 4_000, 0);
-    c.open_claim(id.clone(), "damaged".into(), "hash-b2".into());
+    c.open_claim(id.clone(), "damaged".into(), "hash-b2".into(), "ct".into());
     ctx(acc("anyone.testnet"), 4_000 + 3 * MIN, 0);
     c.default_judgment(id.clone());
     assert_eq!(c.get_balance(buyer2()).0, 50 * USDC);
@@ -278,7 +278,7 @@ fn previous_owner_cannot_claim_after_resale() {
     ctx(buyer(), 3_000, 1);
     c.nft_transfer(buyer2(), id.clone(), None, None);
     ctx(buyer(), 4_000, 0);
-    c.open_claim(id, "damaged".into(), "hash".into());
+    c.open_claim(id, "damaged".into(), "hash".into(), "ct".into());
 }
 
 #[test]
@@ -287,7 +287,7 @@ fn no_transfer_during_dispute() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 3_000, 0);
-    c.open_claim(id.clone(), "damaged".into(), "hash".into());
+    c.open_claim(id.clone(), "damaged".into(), "hash".into(), "ct".into());
     ctx(buyer(), 4_000, 1);
     c.nft_transfer(buyer2(), id, None, None);
 }
@@ -298,7 +298,7 @@ fn no_claims_after_window() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 2_000 + 7 * MIN, 0);
-    c.open_claim(id, "damaged".into(), "hash".into());
+    c.open_claim(id, "damaged".into(), "hash".into(), "ct".into());
 }
 
 #[test]
@@ -307,7 +307,7 @@ fn no_double_settlement() {
     let mut c = setup();
     let id = buy(&mut c, buyer(), 2_000);
     ctx(buyer(), 3_000, 0);
-    c.open_claim(id.clone(), "not_delivered".into(), "hash".into());
+    c.open_claim(id.clone(), "not_delivered".into(), "hash".into(), "ct".into());
     ctx(acc("anyone.testnet"), 3_000 + 3 * MIN, 0);
     c.default_judgment(id.clone());
     ctx(owner(), 3_000 + 3 * MIN, 0);
@@ -342,4 +342,17 @@ fn tiers_use_finished_orders_as_denominator() {
         m.lost = 0;
     }
     assert_eq!(c.get_merchant(shop()).unwrap().tier, Tier::New);
+}
+
+#[test]
+fn evidence_is_stored_per_side() {
+    let mut c = setup();
+    let id = buy(&mut c, buyer(), 2_000);
+    ctx(buyer(), 3_000, 0);
+    c.open_claim(id.clone(), "damaged".into(), "hash-b".into(), "buyer-ciphertext".into());
+    ctx(shop(), 4_000, 0);
+    c.respond(id.clone(), "hash-m".into(), "merchant-ciphertext".into());
+    let (b, m) = c.get_evidence(id);
+    assert_eq!(b.as_deref(), Some("buyer-ciphertext"));
+    assert_eq!(m.as_deref(), Some("merchant-ciphertext"));
 }

@@ -59,7 +59,7 @@ export function ReceiptActions({
   const [to, setTo] = useState(others[0]?.key || "");
   const [done, setDone] = useState("");
 
-  if (!claimOpen || status !== "Locked") return <div className="receipt-actions" />;
+  if (!claimOpen || status !== "Locked") return null;
 
   async function passOn() {
     setBusy(true);

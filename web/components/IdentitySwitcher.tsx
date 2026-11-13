@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-type Person = { key: string; name: string; role: "buyer" | "seller" };
+type Person = { key: string; name: string; role: "buyer" | "seller" | "reviewer" };
 
 export function IdentitySwitcher({ people, current }: { people: Person[]; current: string }) {
   const router = useRouter();
@@ -29,6 +29,11 @@ export function IdentitySwitcher({ people, current }: { people: Person[]; curren
         </optgroup>
         <optgroup label="Sellers">
           {people.filter((p) => p.role === "seller").map((p) => (
+            <option key={p.key} value={p.key}>{p.name}</option>
+          ))}
+        </optgroup>
+        <optgroup label="Disputes">
+          {people.filter((p) => p.role === "reviewer").map((p) => (
             <option key={p.key} value={p.key}>{p.name}</option>
           ))}
         </optgroup>

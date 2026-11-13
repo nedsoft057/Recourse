@@ -29,7 +29,7 @@ export default async function SellerDesk() {
         <div className="desk-head"><h1>Seller desk</h1></div>
         <div className="empty">
           <p className="muted">
-            You're viewing as {me.name}, a buyer. Switch to Atelier Ama, Loom House or Field Kit Supply at the top to
+            You're viewing as {me.name}. Switch to Atelier Ama, Loom House or Field Kit Supply at the top to
             see a seller's links, orders and payouts.
           </p>
         </div>
@@ -121,12 +121,12 @@ export default async function SellerDesk() {
             <tbody>
               {receipts.map((r) => (
                 <tr key={r.token_id}>
-                  <td>#{r.token_id}</td>
+                  <td><Link href={`/case/${r.token_id}`}>#{r.token_id}</Link></td>
                   <td>{r.listing_title}</td>
                   <td>{personByAccount(r.holder)?.name || r.holder}</td>
                   <td className="num">{usdc(r.escrow.price)}</td>
                   <td className="num">{usdc(r.escrow.locked)}</td>
-                  <td>{sellerStatus[r.escrow.status]}</td>
+                  <td>{r.escrow.status === "Disputed" && !r.escrow.claim?.responded_at ? <Link href={`/case/${r.token_id}`}>Claim open: respond</Link> : sellerStatus[r.escrow.status]}</td>
                   <td><When ms={r.escrow.claim_ends} /></td>
                 </tr>
               ))}

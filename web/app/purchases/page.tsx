@@ -18,7 +18,7 @@ export default async function Purchases() {
       <div className="wrap">
         <div className="desk-head"><h1>Purchases</h1></div>
         <div className="empty">
-          <p className="muted">You're viewing as {me.name}, a seller. Switch to Ada or Bayo at the top to see a buyer's receipts.</p>
+          <p className="muted">You're viewing as {me.name}. Switch to Ada or Bayo at the top to see a buyer's receipts.</p>
         </div>
       </div>
     );
@@ -74,7 +74,7 @@ export default async function Purchases() {
               <article className="card receipt" key={r.token_id}>
                 <Thumb image={imageFor(e.listing_id)} title={r.listing_title} />
                 <div className="receipt-body">
-                  <h3>{r.listing_title}</h3>
+                  <h3><Link href={`/case/${r.token_id}`} style={{ color: "inherit", textDecoration: "none" }}>{r.listing_title}</Link></h3>
                   <p className={`receipt-status ${s.held ? "held" : ""}`}>
                     {s.held && <Seal size={16} on="light" />} {s.title}
                   </p>
@@ -95,12 +95,17 @@ export default async function Purchases() {
                     )}
                   </ul>
                 </div>
+                <div style={{ display: "grid", gap: "0.5rem" }}>
+                <Link className="button quiet" href={`/case/${r.token_id}`}>
+                  {e.status === "Locked" && now < e.claim_ends ? "Something wrong? Claim" : "Details"}
+                </Link>
                 <ReceiptActions
                   tokenId={r.token_id}
                   status={e.status}
                   claimOpen={e.status === "Locked" && now < e.claim_ends}
                   others={others}
                 />
+                </div>
               </article>
             );
           })}
