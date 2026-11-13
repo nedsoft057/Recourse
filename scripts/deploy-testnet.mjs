@@ -29,7 +29,7 @@ const TGAS = 1_000_000_000_000n;
 const USDC = 1_000_000n;
 
 const ids = {
-  recourse: `recourse.${M}`,
+  recourse: `pay.${M}`,
   token: `usdc.${M}`,
   judge: `judge.${M}`,
   relayer: `relayer.${M}`,

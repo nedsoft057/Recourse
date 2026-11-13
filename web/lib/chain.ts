@@ -2,7 +2,7 @@
 
 const RPC = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
 export const MASTER = process.env.NEAR_MASTER_ACCOUNT || "favour-recourse.testnet";
-export const CONTRACT = process.env.RECOURSE_CONTRACT || `recourse.${MASTER}`;
+export const CONTRACT = process.env.RECOURSE_CONTRACT || `pay.${MASTER}`;
 export const TOKEN = process.env.RECOURSE_TOKEN || `usdc.${MASTER}`;
 export const EXPLORER = "https://testnet.nearblocks.io";
 

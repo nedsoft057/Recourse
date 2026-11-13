@@ -9,4 +9,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           T=$(cat .github/smoke/view)
-          curl -s -X POST https://test.rpc.fastnear.com -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"recourse.favour-recourse.testnet\",\"method_name\":\"get_receipt\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $T | base64 -w0)\"}}" | jq -r '.result.result | implode | fromjson | "receipt \(.token_id): holder \(.holder), original buyer \(.escrow.original_buyer), status \(.escrow.status)"'
+          curl -s -X POST https://test.rpc.fastnear.com -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"pay.favour-recourse.testnet\",\"method_name\":\"get_receipt\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $T | base64 -w0)\"}}" | jq -r '.result.result | implode | fromjson | "receipt \(.token_id): holder \(.holder), original buyer \(.escrow.original_buyer), status \(.escrow.status)"'

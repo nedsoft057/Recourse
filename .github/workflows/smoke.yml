@@ -56,5 +56,5 @@ jobs:
             echo "$RES" | jq -e .ok >/dev/null || exit 1
           fi
           sleep 3
-          curl -s -X POST https://test.rpc.fastnear.com -H "$J" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"recourse.favour-recourse.testnet\",\"method_name\":\"get_receipt\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $TOKEN | base64 -w0)\"}}" \
+          curl -s -X POST https://test.rpc.fastnear.com -H "$J" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"pay.favour-recourse.testnet\",\"method_name\":\"get_receipt\",\"args_base64\":\"$(printf '{"token_id":"%s"}' $TOKEN | base64 -w0)\"}}" \
             | jq -r '.result.result | implode | fromjson | "receipt \(.token_id): holder \(.holder), locked \(.escrow.locked), status \(.escrow.status)"'

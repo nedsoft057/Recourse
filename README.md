@@ -5,7 +5,7 @@
 Recourse turns any sale into a protected payment link. The buyer pays in USDC; part reaches the seller immediately and the rest is held in a **receipt NFT the buyer owns** until the claim window closes. If the order goes wrong, the buyer claims the held part back through a defined dispute process with an AI judge running in a NEAR AI Cloud TEE. If the buyer resells the item, they pass the receipt on and **the remaining protection travels with it**.
 
 - **Live app:** https://recourse-market.vercel.app
-- **Contract (testnet):** [`recourse.favour-recourse.testnet`](https://testnet.nearblocks.io/address/recourse.favour-recourse.testnet)
+- **Contract (testnet):** [`pay.favour-recourse.testnet`](https://testnet.nearblocks.io/address/pay.favour-recourse.testnet)
 - **Track:** NFTs That Do Something (receipts are NFTs that hold funds and carry refund rights)
 - **Built for:** NEAR HACKATHON, November 2026
 - **Built by:** Favour ([@Favour_D_Crier](https://x.com/Favour_D_Crier))
