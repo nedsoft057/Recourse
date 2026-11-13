@@ -8,7 +8,7 @@ import { openEvidence, sha256 } from "./evidence";
 import type { ListingView, ReceiptView } from "./types";
 
 const API = process.env.NEARAI_BASE_URL || "https://cloud-api.near.ai/v1";
-export const JUDGE_MODEL = process.env.NEARAI_MODEL || "deepseek-ai/DeepSeek-V3.1";
+export const JUDGE_MODEL = process.env.NEARAI_MODEL || "deepseek-ai/DeepSeek-V4.1-Flash-1017";
 const JUDGE = `judge.${MASTER}`;
 
 export const POLICY = `You are the dispute judge for Recourse, a buyer-protection service for stablecoin payments.
