@@ -610,3 +610,5 @@ h1, h2, h3 { font-family: var(--sans); font-weight: 600; letter-spacing: -0.035e
   .o-shield { right: -6px; top: 380px; }
   .o-parcel { right: 6%; top: 900px; }
 }
+
+.timeline li.closing-soon { color: #b3261e; font-weight: 600; }

@@ -86,6 +86,13 @@ export default async function Purchases() {
                     {e.status === "Locked" && now < e.claim_ends && (
                       <li>
                         Claim window closes <When ms={e.claim_ends} /> (<Countdown ms={e.claim_ends} />)
+                        {e.extended ? ", extended once" : ""}
+                      </li>
+                    )}
+                    {e.status === "Locked" && now < e.claim_ends && closingSoon(e, now) && (
+                      <li className="closing-soon">
+                        Closing soon. If the item hasn't arrived or isn't right, claim or extend now. Once the
+                        window closes, the held {usdc(e.locked)} USDC goes to the seller.
                       </li>
                     )}
                     {e.closed_at && (
@@ -103,6 +110,7 @@ export default async function Purchases() {
                   tokenId={r.token_id}
                   status={e.status}
                   claimOpen={e.status === "Locked" && now < e.claim_ends}
+                  extended={e.extended}
                   others={others}
                 />
                 </div>
@@ -113,4 +121,9 @@ export default async function Purchases() {
       )}
     </div>
   );
+}
+
+/** The last day of a real window, or the last 40% of a short demo window. */
+function closingSoon(e: { paid_at: number; claim_ends: number }, now: number) {
+  return e.claim_ends - now < Math.min(86_400_000, (e.claim_ends - e.paid_at) * 0.4);
 }

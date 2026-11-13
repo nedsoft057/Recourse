@@ -35,6 +35,7 @@ const GAS_CALLBACK: Gas = Gas::from_tgas(10);
 /// Set comfortably above measured usage so the contract never runs short.
 const STORAGE_MERCHANT: u128 = 10_000_000_000_000_000_000_000; // 0.01 NEAR
 const STORAGE_LISTING: u128 = 10_000_000_000_000_000_000_000; // 0.01 NEAR
+const MAX_EXTENSION_MS: u64 = 7 * 86_400_000;
 const STORAGE_RECEIPT: u128 = 20_000_000_000_000_000_000_000; // 0.02 NEAR
 
 const MIN_CLAIM_WINDOW_MS: u64 = 60_000; // 1 minute (demo)
@@ -58,6 +59,7 @@ pub enum StorageKey {
     NftOwners,
     NftMetadata,
     NftEnumeration,
+    Buyers,
 }
 
 #[near(serializers = [borsh, json])]
@@ -239,6 +241,20 @@ pub struct Escrow {
     pub review: Option<Review>,
     pub final_buyer_bps: Option<u16>,
     pub closed_at: Option<u64>,
+    /// The holder can push the claim window back once (e.g. a slow delivery).
+    pub extended: bool,
+}
+
+/// A buyer's claim history, visible to sellers and to the judge.
+#[near(serializers = [borsh, json])]
+#[derive(Clone, Debug, Default)]
+pub struct BuyerRecord {
+    /// Claims opened.
+    pub claims: u32,
+    /// Claims decided at least half in the buyer's favour (or refunded by the seller).
+    pub won: u32,
+    /// Claims decided mostly for the seller.
+    pub lost: u32,
 }
 
 #[near(serializers = [json])]
@@ -292,6 +308,7 @@ pub struct Recourse {
     /// Only its hash is part of the claim; the backend and the judge decrypt it.
     evidence: LookupMap<String, String>,
     next_receipt: u64,
+    buyers: LookupMap<AccountId, BuyerRecord>,
 }
 
 fn now_ms() -> u64 {
@@ -348,6 +365,7 @@ impl Recourse {
             merchant_receipts: LookupMap::new(StorageKey::MerchantReceipts),
             evidence: LookupMap::new(StorageKey::Evidence),
             next_receipt: 1,
+            buyers: LookupMap::new(StorageKey::Buyers),
         }
     }
 
@@ -532,10 +550,14 @@ impl Recourse {
         );
         let amount = e.locked.0;
         let merchant = e.merchant.clone();
+        let claimant = e.claim.as_ref().map(|c| c.claimant.clone());
         e.status = Status::Refunded;
         e.final_buyer_bps = Some(10_000);
         e.closed_at = Some(now_ms());
         self.credit(&holder, amount);
+        if let Some(c) = claimant {
+            self.record_buyer(&c, |r| r.won += 1);
+        }
         self.merchants.get_mut(&merchant).unwrap().finished += 1;
         event(
             "refunded_voluntarily",
@@ -544,6 +566,26 @@ impl Recourse {
     }
 
     // ------------------------------------------------------------ disputes
+
+    /// The holder pushes the claim window back once, by the original window
+    /// length (at most 7 days). For deliveries slower than the window.
+    pub fn extend_window(&mut self, token_id: TokenId) {
+        let caller = env::predecessor_account_id();
+        require!(self.holder(&token_id) == caller, "Only the receipt holder");
+        let now = now_ms();
+        let e = self.escrows.get_mut(&token_id).expect("Receipt not found");
+        require!(e.status == Status::Locked, "Receipt is not open");
+        require!(now < e.claim_ends, "Claim window has ended");
+        require!(!e.extended, "The window can only be extended once");
+        let extra = (e.claim_ends - e.paid_at).min(MAX_EXTENSION_MS);
+        e.claim_ends += extra;
+        e.extended = true;
+        let ends = e.claim_ends;
+        event(
+            "window_extended",
+            format!("{{\"token_id\":\"{token_id}\",\"claim_ends\":{ends}}}"),
+        );
+    }
 
     pub fn open_claim(
         &mut self,
@@ -573,6 +615,7 @@ impl Recourse {
             merchant_evidence: None,
             responded_at: None,
         });
+        self.record_buyer(&caller, |r| r.claims += 1);
         event(
             "claim_opened",
             format!("{{\"token_id\":\"{token_id}\",\"by\":\"{caller}\"}}"),
@@ -860,11 +903,21 @@ impl Recourse {
         )
     }
 
+    pub fn get_buyer(&self, account_id: AccountId) -> BuyerRecord {
+        self.buyers.get(&account_id).cloned().unwrap_or_default()
+    }
+
     pub fn get_balance(&self, account_id: AccountId) -> U128 {
         self.balances.get(&account_id).copied().unwrap_or(U128(0))
     }
 
     // ------------------------------------------------------------ internals
+
+    fn record_buyer(&mut self, account: &AccountId, f: impl FnOnce(&mut BuyerRecord)) {
+        let mut r = self.buyers.get(account).cloned().unwrap_or_default();
+        f(&mut r);
+        self.buyers.insert(account.clone(), r);
+    }
 
     fn assert_owner(&self) {
         require!(
@@ -985,6 +1038,7 @@ impl Recourse {
         let to_buyer = locked * buyer_bps as u128 / BPS;
         let to_merchant = locked - to_buyer;
         let merchant = e.merchant.clone();
+        let claimant = e.claim.as_ref().map(|c| c.claimant.clone());
         e.status = match buyer_bps {
             10_000 => Status::Refunded,
             0 => Status::Settled,
@@ -998,6 +1052,13 @@ impl Recourse {
         m.finished += 1;
         if buyer_bps >= 5_000 {
             m.lost += 1;
+        }
+        if let Some(c) = claimant {
+            if buyer_bps >= 5_000 {
+                self.record_buyer(&c, |r| r.won += 1);
+            } else {
+                self.record_buyer(&c, |r| r.lost += 1);
+            }
         }
         event(
             "decided",
@@ -1105,6 +1166,7 @@ impl FungibleTokenReceiver for Recourse {
                 review: None,
                 final_buyer_bps: if locked == 0 { Some(0) } else { None },
                 closed_at: if locked == 0 { Some(now) } else { None },
+                extended: false,
             },
         );
         if let Some(l) = self.listings.get_mut(pay.listing_id) {

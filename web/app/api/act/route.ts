@@ -25,6 +25,9 @@ export async function POST(req: Request) {
         );
         break;
       }
+      case "extend":
+        out = await act(signer, "extend_window", { token_id: String(body.token_id) }, { tgas: 15n });
+        break;
       case "release":
         out = await act(signer, "release", { token_id: String(body.token_id) }, { tgas: 30n });
         break;

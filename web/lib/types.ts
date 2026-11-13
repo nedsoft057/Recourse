@@ -89,6 +89,7 @@ export type Escrow = {
   review: Review | null;
   final_buyer_bps: number | null;
   closed_at: number | null;
+  extended: boolean;
 };
 
 export type ReceiptView = {
@@ -97,3 +98,5 @@ export type ReceiptView = {
   listing_title: string;
   escrow: Escrow;
 };
+
+export type BuyerRecord = { claims: number; won: number; lost: number };

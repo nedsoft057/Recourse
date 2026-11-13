@@ -356,3 +356,73 @@ fn evidence_is_stored_per_side() {
     assert_eq!(b.as_deref(), Some("buyer-ciphertext"));
     assert_eq!(m.as_deref(), Some("merchant-ciphertext"));
 }
+
+#[test]
+fn holder_can_extend_window_once() {
+    let mut c = setup();
+    let id = buy(&mut c, buyer(), 2_000);
+    ctx(buyer(), 3_000, 0);
+    c.extend_window(id.clone());
+    let r = c.get_receipt(id.clone()).unwrap();
+    assert_eq!(r.escrow.claim_ends, 2_000 + 14 * MIN);
+    assert!(r.escrow.extended);
+    // The original window has passed, but the extension keeps claims open.
+    ctx(buyer(), 2_000 + 10 * MIN, 0);
+    c.open_claim(id.clone(), "not_delivered".into(), "h".into(), "ct".into());
+    assert_eq!(status(&c, &id), Status::Disputed);
+}
+
+#[test]
+#[should_panic(expected = "The window can only be extended once")]
+fn window_extends_only_once() {
+    let mut c = setup();
+    let id = buy(&mut c, buyer(), 2_000);
+    ctx(buyer(), 3_000, 0);
+    c.extend_window(id.clone());
+    c.extend_window(id);
+}
+
+#[test]
+#[should_panic(expected = "Only the receipt holder")]
+fn seller_cannot_extend_window() {
+    let mut c = setup();
+    let id = buy(&mut c, buyer(), 2_000);
+    ctx(shop(), 3_000, 0);
+    c.extend_window(id);
+}
+
+#[test]
+fn release_waits_for_extended_window() {
+    let mut c = setup();
+    let id = buy(&mut c, buyer(), 2_000);
+    ctx(buyer(), 3_000, 0);
+    c.extend_window(id.clone());
+    ctx(shop(), 2_000 + 8 * MIN, 0);
+    assert_eq!(c.release_many(vec![id.clone()]), 0);
+    ctx(shop(), 2_000 + 14 * MIN, 0);
+    assert_eq!(c.release_many(vec![id.clone()]), 1);
+}
+
+#[test]
+fn buyer_record_counts_claims_won_and_lost() {
+    let mut c = setup();
+    // Won: the seller stays silent.
+    let a = buy(&mut c, buyer(), 2_000);
+    ctx(buyer(), 3_000, 0);
+    c.open_claim(a.clone(), "not_delivered".into(), "h".into(), "ct".into());
+    ctx(acc("anyone.testnet"), 3_000 + 3 * MIN, 0);
+    c.default_judgment(a);
+    // Lost: the AI rules for the seller and nobody appeals.
+    let b = buy(&mut c, buyer(), 4_000);
+    ctx(buyer(), 5_000, 0);
+    c.open_claim(b.clone(), "not_delivered".into(), "h".into(), "ct".into());
+    ctx(shop(), 6_000, 0);
+    c.respond(b.clone(), "hm".into(), "ct".into());
+    ctx(judge(), 7_000, 0);
+    c.post_ruling(b.clone(), 0, "rh".into(), "att".into(), "{}".into());
+    ctx(acc("anyone.testnet"), 7_000 + 3 * MIN, 0);
+    c.finalize(b);
+    let r = c.get_buyer(buyer());
+    assert_eq!((r.claims, r.won, r.lost), (2, 1, 1));
+    assert_eq!(c.get_buyer(buyer2()).claims, 0);
+}

@@ -46,11 +46,13 @@ export function ReceiptActions({
   tokenId,
   status,
   claimOpen,
+  extended,
   others,
 }: {
   tokenId: string;
   status: string;
   claimOpen: boolean;
+  extended: boolean;
   others: { key: string; name: string }[];
 }) {
   const router = useRouter();
@@ -75,8 +77,26 @@ export function ReceiptActions({
     setBusy(false);
   }
 
+  async function extend() {
+    setBusy(true);
+    setError("");
+    try {
+      await post({ action: "extend", token_id: tokenId });
+      setDone("Claim window extended. You can do this once per receipt.");
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+    setBusy(false);
+  }
+
   return (
     <div className="receipt-actions">
+      {!extended && (
+        <button className="button quiet" onClick={extend} disabled={busy}>
+          {busy ? "Extending…" : "Not arrived yet? Extend window"}
+        </button>
+      )}
       {others.length > 0 && (
         <div style={{ display: "grid", gap: "0.5rem" }}>
           <label className="field">

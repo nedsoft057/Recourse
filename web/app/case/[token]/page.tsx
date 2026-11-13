@@ -5,7 +5,7 @@ import { openEvidence, sha256 } from "@/lib/evidence";
 import { accountOf, currentPerson, personByAccount } from "@/lib/identity";
 import { usdc } from "@/lib/format";
 import { statusFor } from "@/lib/status";
-import type { ListingView, ReceiptView } from "@/lib/types";
+import type { BuyerRecord, ListingView, ReceiptView } from "@/lib/types";
 import { Thumb } from "@/components/Thumb";
 import { Seal } from "@/components/Seal";
 import { When, Countdown } from "@/components/When";
@@ -40,6 +40,7 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
     view<ListingView | null>("get_listing", { listing_id: e.listing_id }),
     view<[string | null, string | null]>("get_evidence", { token_id: token }),
   ]);
+  const record = e.claim ? await view<BuyerRecord>("get_buyer", { account_id: e.claim.claimant }) : null;
   const me = await currentPerson();
   const mine = accountOf(me.key);
   const isHolder = r.holder === mine;
@@ -98,12 +99,21 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
         <ol className="case-timeline">
           <li>
             <strong>Paid</strong> <When ms={e.paid_at} />
-            <span className="muted"> Claim window until <When ms={e.claim_ends} /></span>
+            <span className="muted"> Claim window until <When ms={e.claim_ends} />{e.extended ? " (extended once by the buyer)" : ""}</span>
           </li>
           {e.claim && (
             <li>
               <strong>Claim opened: {reasonWords[e.claim.reason] || e.claim.reason}</strong> by {name(e.claim.claimant)},{" "}
               <When ms={e.claim.opened_at} />
+              {record && (
+                <span className="muted">
+                  {" "}
+                  {name(e.claim.claimant)}&apos;s claim record:{" "}
+                  {record.claims <= 1 && record.won + record.lost === 0
+                    ? "first claim"
+                    : `${record.claims} opened, ${record.won} won, ${record.lost} rejected`}
+                </span>
+              )}
             </li>
           )}
           {e.claim &&
