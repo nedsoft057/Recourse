@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { view } from "@/lib/chain";
+import { view, CONTRACT, EXPLORER } from "@/lib/chain";
 import { openEvidence, sha256 } from "@/lib/evidence";
 import { accountOf, currentPerson, personByAccount } from "@/lib/identity";
 import { usdc } from "@/lib/format";
@@ -83,7 +83,10 @@ export default async function CasePage({ params }: { params: Promise<{ token: st
       <div className="card" style={{ padding: "1rem", display: "grid", gridTemplateColumns: "5rem 1fr", gap: "1rem", alignItems: "center" }}>
         <Thumb image={listing?.listing.image} title={r.listing_title} className="case-thumb" />
         <div style={{ display: "grid", gap: "0.2rem" }}>
-          <span className="small muted">Receipt #{token} from {seller}</span>
+          <span className="small muted">
+            Receipt NFT #{token} from {seller}, held by {name(r.holder)}.{" "}
+            <a href={`${EXPLORER}/nft-token/${CONTRACT}/${token}`} target="_blank" rel="noreferrer">View NFT</a>
+          </span>
           <h1 style={{ fontSize: "1.9rem", lineHeight: 1.05 }}>{r.listing_title}</h1>
           <span className={`receipt-status ${s.held ? "held" : ""}`}>
             {s.held && <Seal size={16} on="light" />} {s.title}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { view } from "@/lib/chain";
+import { view, CONTRACT, EXPLORER } from "@/lib/chain";
 import { accountOf, currentPerson, PEOPLE, personByAccount } from "@/lib/identity";
 import { usdc } from "@/lib/format";
 import { statusFor } from "@/lib/status";
@@ -82,6 +82,12 @@ export default async function Purchases() {
                     <li>
                       Receipt #{r.token_id}, paid {usdc(e.price)} USDC on <When ms={e.paid_at} />
                       {resold && boughtBy ? `, passed on by ${boughtBy.name}` : ""}
+                    </li>
+                    <li>
+                      This receipt is an NFT in your account, and it&apos;s the key to the held money.{" "}
+                      <a href={`${EXPLORER}/nft-token/${CONTRACT}/${r.token_id}`} target="_blank" rel="noreferrer">
+                        View NFT
+                      </a>
                     </li>
                     {e.status === "Locked" && now < e.claim_ends && (
                       <li>
