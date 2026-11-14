@@ -17,15 +17,91 @@ Recourse turns any sale into a protected payment link. The buyer pays in USDC; p
 - **Full architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Built by:** Favour ([@Favour_D_Crier](https://x.com/Favour_D_Crier))
 
-| Checkout: the split | Receipt NFT with the product photo | Claim with a voice note and a photo | The AI judge's ruling |
-| --- | --- | --- | --- |
-| ![Checkout](docs/images/checkout.jpg) | ![Receipt NFT](docs/images/receipt-nft.jpg) | ![Claim with evidence](docs/images/claim-evidence.jpg) | ![AI ruling](docs/images/ai-ruling.jpg) |
-| **Verify this ruling: hash, chat ID, enclave address** | **Reviewer opens the appeal's file** | **False claim: proof of delivery wins** | **Guided 2-minute demo** |
-| ![Verify](docs/images/verify.jpg) | ![Reviewer](docs/images/reviewer.jpg) | ![False claim](docs/images/false-claim.jpg) | ![Guided demo](docs/images/guided-demo.jpg) |
-
-Screens are from the live app on a phone, recorded by an automated browser in [`scripts/film.mjs`](scripts/film.mjs).
-
 <!-- evidence:start -->
+## Proof: every scenario, run on testnet
+
+Every scenario in this README was run against the live app and contract by [`scripts/evidence.mjs`](scripts/evidence.mjs) (workflow **Record live testnet evidence**, run 2026-11-14 19:13 UTC). Each row is a real transaction on `pay.favour-recourse.testnet`; the screenshots are the explorer pages and live case pages for those exact transactions, taken by [`scripts/proof.mjs`](scripts/proof.mjs). The raw record is [`docs/evidence.json`](docs/evidence.json).
+
+| The purchase mints the receipt NFT | The receipt moves to the new owner | The AI ruling, on-chain |
+| --- | --- | --- |
+| <a href="https://testnet.near.rocks/tx/6Pzfjvwms5zSfWHDiZvt2daw6LPftc7G3mYBa6rGAcU2"><img src="docs/images/proof/tx-purchase.jpg" width="100%"></a> | <a href="https://testnet.near.rocks/tx/HPBRCWGjyBzyVJPBC4vK9s18LpYWKAYrXsFPpJu7cum9"><img src="docs/images/proof/tx-transfer.jpg" width="100%"></a> | <a href="https://testnet.near.rocks/tx/9EgYnQLpco3TcodpqEbd1224mcEVRmVPNPgENANEN7Qq"><img src="docs/images/proof/tx-ruling.jpg" width="100%"></a> |
+| ft_transfer_call: Ada pays 8 USDC; the contract splits it and mints receipt NFT #38 (nft_mint event) | nft_transfer: Ada passes receipt #38, and the protection, to Bayo | post_ruling from judge.favour-recourse.testnet: the AI ruling with its hash, chat ID and enclave signing address |
+
+| Case #38: resale, photo, AI refund | Case #39: appeal decided by a person | Case #40: false claim loses | Case #41: silent seller | Receipts with product photos |
+| --- | --- | --- | --- | --- |
+| <a href="https://recourse-market.vercel.app/case/38"><img src="docs/images/proof/case-resale.jpg" width="100%"></a> | <a href="https://recourse-market.vercel.app/case/39"><img src="docs/images/proof/case-appeal.jpg" width="100%"></a> | <a href="https://recourse-market.vercel.app/case/40"><img src="docs/images/proof/case-false.jpg" width="100%"></a> | <a href="https://recourse-market.vercel.app/case/41"><img src="docs/images/proof/case-silent.jpg" width="100%"></a> | <a href="https://recourse-market.vercel.app/purchases"><img src="docs/images/proof/purchases-extended.jpg" width="100%"></a> |
+
+Case pages are the live app, viewed as the buyer, reviewer or seller of each case. Click any screenshot to open the page it came from. The photo uploaded in these runs is a sample product image; the AI judge never opens files (policy rule 8).
+
+<details>
+<summary><b>All 32 recorded transactions</b>, by scenario (links to NEAR Rocks and NearBlocks)</summary>
+
+**Clean sale.** Buyer pays, nobody claims, the seller collects the held part after the window and withdraws.
+
+| Step | Transaction |
+| --- | --- |
+| create_listing (Loom House) | [`HprDoFwZ6A…`](https://testnet.near.rocks/tx/HprDoFwZ6ArVvfTuM4SdcLbGqhxixgacW4b5P9gVVbgA) · [NearBlocks](https://testnet.nearblocks.io/txns/HprDoFwZ6ArVvfTuM4SdcLbGqhxixgacW4b5P9gVVbgA) |
+| ft_transfer_call → receipt NFT minted to Ada (receipt #37) | [`31M7wsUuAs…`](https://testnet.near.rocks/tx/31M7wsUuAsuZiweLaxcTty5RHWp17dVeidex5zH8xGfB) · [NearBlocks](https://testnet.nearblocks.io/txns/31M7wsUuAsuZiweLaxcTty5RHWp17dVeidex5zH8xGfB) |
+| release_many (seller collects after the window) | [`DowAaP6WnQ…`](https://testnet.near.rocks/tx/DowAaP6WnQQrx9a1hx9XSVWVMHZbPF5VD3oJD5zTSH9x) · [NearBlocks](https://testnet.nearblocks.io/txns/DowAaP6WnQQrx9a1hx9XSVWVMHZbPF5VD3oJD5zTSH9x) |
+| withdraw (seller) | [`HPEooqVqy4…`](https://testnet.near.rocks/tx/HPEooqVqy4Pw7SvYf3DuagahEeU85GU3i1sdEhuP49XU) · [NearBlocks](https://testnet.nearblocks.io/txns/HPEooqVqy4Pw7SvYf3DuagahEeU85GU3i1sdEhuP49XU) |
+
+**Resale + damaged item.** Ada buys and passes the receipt to Bayo; Bayo claims with a photo; the AI judge refunds the current holder.
+
+| Step | Transaction |
+| --- | --- |
+| create_listing (Field Kit) | [`2vGYDhvxii…`](https://testnet.near.rocks/tx/2vGYDhvxiiriuE9z1fEwQT8mborLDWvmbKw48BpmPRwN) · [NearBlocks](https://testnet.nearblocks.io/txns/2vGYDhvxiiriuE9z1fEwQT8mborLDWvmbKw48BpmPRwN) |
+| ft_transfer_call → receipt NFT minted to Ada (receipt #38) | [`6Pzfjvwms5…`](https://testnet.near.rocks/tx/6Pzfjvwms5zSfWHDiZvt2daw6LPftc7G3mYBa6rGAcU2) · [NearBlocks](https://testnet.nearblocks.io/txns/6Pzfjvwms5zSfWHDiZvt2daw6LPftc7G3mYBa6rGAcU2) |
+| nft_transfer → receipt passed to Bayo | [`HPBRCWGjyB…`](https://testnet.near.rocks/tx/HPBRCWGjyBzyVJPBC4vK9s18LpYWKAYrXsFPpJu7cum9) · [NearBlocks](https://testnet.nearblocks.io/txns/HPBRCWGjyBzyVJPBC4vK9s18LpYWKAYrXsFPpJu7cum9) |
+| upload evidence photo (encrypted, Vercel Blob) (SHA-256 `1907cd7282804891…`) | off-chain |
+| open_claim (Bayo, with photo) | [`2UMCcaqtWD…`](https://testnet.near.rocks/tx/2UMCcaqtWDBvy6EbchLvHmhoZeKYe8dBTJYVxFNz7aGx) · [NearBlocks](https://testnet.nearblocks.io/txns/2UMCcaqtWDBvy6EbchLvHmhoZeKYe8dBTJYVxFNz7aGx) |
+| respond (seller) → AI judge on NEAR AI Cloud | [`EcJ6QqZ5bV…`](https://testnet.near.rocks/tx/EcJ6QqZ5bVe12qz4U7CTVuPiZ8S36Tw7sTdunrmiNyo) · [NearBlocks](https://testnet.nearblocks.io/txns/EcJ6QqZ5bVe12qz4U7CTVuPiZ8S36Tw7sTdunrmiNyo) |
+| AI ruling: Ruled: refund | [`9EgYnQLpco…`](https://testnet.near.rocks/tx/9EgYnQLpco3TcodpqEbd1224mcEVRmVPNPgENANEN7Qq) · [NearBlocks](https://testnet.nearblocks.io/txns/9EgYnQLpco3TcodpqEbd1224mcEVRmVPNPgENANEN7Qq) |
+| finalize (after the appeal window) | [`4Usoeqi6LE…`](https://testnet.near.rocks/tx/4Usoeqi6LENwx62cDWwgrn6jWPHPG4UuH7GHkEMc4TET) · [NearBlocks](https://testnet.nearblocks.io/txns/4Usoeqi6LENwx62cDWwgrn6jWPHPG4UuH7GHkEMc4TET) |
+| withdraw (Bayo, the refund) | [`48hyDUsUEj…`](https://testnet.near.rocks/tx/48hyDUsUEjGRY2Bpzq3gbZFPe1sDpmTR3mwU7GcKYeuv) · [NearBlocks](https://testnet.nearblocks.io/txns/48hyDUsUEjGRY2Bpzq3gbZFPe1sDpmTR3mwU7GcKYeuv) |
+
+**Appeal to a human.** The seller appeals an AI ruling with a file; the reviewer decides a 50/50 split.
+
+| Step | Transaction |
+| --- | --- |
+| create_listing (Field Kit) | [`AtmiaE2FHv…`](https://testnet.near.rocks/tx/AtmiaE2FHvC8hW4mdz4Ve95RDuJQ1mEDyXWq2gVKMPSn) · [NearBlocks](https://testnet.nearblocks.io/txns/AtmiaE2FHvC8hW4mdz4Ve95RDuJQ1mEDyXWq2gVKMPSn) |
+| ft_transfer_call → receipt NFT minted to Bayo (receipt #39) | [`FpGKusFuvs…`](https://testnet.near.rocks/tx/FpGKusFuvsbutjpDfz3fYZLcdvb56P9nxpGSQrWJbEg9) · [NearBlocks](https://testnet.nearblocks.io/txns/FpGKusFuvsbutjpDfz3fYZLcdvb56P9nxpGSQrWJbEg9) |
+| open_claim (Bayo) | [`Ef8m87K1Nu…`](https://testnet.near.rocks/tx/Ef8m87K1NuY3K4vdCTzJWcQ7ZPBKuGZWHrfscuqKRUDS) · [NearBlocks](https://testnet.nearblocks.io/txns/Ef8m87K1NuY3K4vdCTzJWcQ7ZPBKuGZWHrfscuqKRUDS) |
+| respond (seller) → AI judge | [`BiyUFbmqJT…`](https://testnet.near.rocks/tx/BiyUFbmqJTDcAcX6b2pXdHWW5rj6XQQ24LbzZ4j7Gd2p) · [NearBlocks](https://testnet.nearblocks.io/txns/BiyUFbmqJTDcAcX6b2pXdHWW5rj6XQQ24LbzZ4j7Gd2p) |
+| AI ruling: Ruled: refund | [`7CzweUvPX3…`](https://testnet.near.rocks/tx/7CzweUvPX39F7FDr8hKDJnSvgPkdgLokjgYURLfeHtQk) · [NearBlocks](https://testnet.nearblocks.io/txns/7CzweUvPX39F7FDr8hKDJnSvgPkdgLokjgYURLfeHtQk) |
+| appeal (seller, with a file) | [`6q7UpZHpM4…`](https://testnet.near.rocks/tx/6q7UpZHpM4tfKubkv7tBCY4TuCNXK6EDsKyKzxasWhzu) · [NearBlocks](https://testnet.nearblocks.io/txns/6q7UpZHpM4tfKubkv7tBCY4TuCNXK6EDsKyKzxasWhzu) |
+| resolve_review (human reviewer: 50/50) | [`9BUakCspNr…`](https://testnet.near.rocks/tx/9BUakCspNrY4eSWHtMkREiDycDnBury3Qod54EUih5yA) · [NearBlocks](https://testnet.nearblocks.io/txns/9BUakCspNrY4eSWHtMkREiDycDnBury3Qod54EUih5yA) |
+
+**False claim.** The buyer says it never came; the seller shows tracking; the AI releases the money to the seller.
+
+| Step | Transaction |
+| --- | --- |
+| create_listing (Atelier Ama) | [`8defVzj3mo…`](https://testnet.near.rocks/tx/8defVzj3moAnXfNHuUAPVbNPU4TSjBUxkznbaEy2UUwY) · [NearBlocks](https://testnet.nearblocks.io/txns/8defVzj3moAnXfNHuUAPVbNPU4TSjBUxkznbaEy2UUwY) |
+| ft_transfer_call → receipt NFT minted to Ada (receipt #40) | [`DhezkgUd87…`](https://testnet.near.rocks/tx/DhezkgUd87LwVv4hMGfd8fDpSgCDZy8FyMnJwaHM2xUZ) · [NearBlocks](https://testnet.nearblocks.io/txns/DhezkgUd87LwVv4hMGfd8fDpSgCDZy8FyMnJwaHM2xUZ) |
+| open_claim (Ada: never arrived) | [`6k3ZBhSAed…`](https://testnet.near.rocks/tx/6k3ZBhSAedEZpDhiSR6CKL9yGEiCLaMjSiS2xnzJ564k) · [NearBlocks](https://testnet.nearblocks.io/txns/6k3ZBhSAedEZpDhiSR6CKL9yGEiCLaMjSiS2xnzJ564k) |
+| respond (seller, with tracking) → AI judge | [`DizNCHAyCo…`](https://testnet.near.rocks/tx/DizNCHAyCoBeDLZkV5GxAvfbjPBB61FGsVuyCzJcb57K) · [NearBlocks](https://testnet.nearblocks.io/txns/DizNCHAyCoBeDLZkV5GxAvfbjPBB61FGsVuyCzJcb57K) |
+| AI ruling: Ruled: release | [`EwrRvbwrVn…`](https://testnet.near.rocks/tx/EwrRvbwrVnzEr7ouD9xKbdPiei4vamTwjRFyc3iHRCrP) · [NearBlocks](https://testnet.nearblocks.io/txns/EwrRvbwrVnzEr7ouD9xKbdPiei4vamTwjRFyc3iHRCrP) |
+| finalize (after the appeal window) | [`7aqpeLzVfu…`](https://testnet.near.rocks/tx/7aqpeLzVfuF2Q7bjLarxJDcxYquR2gYw1x4jg9EUEqMi) · [NearBlocks](https://testnet.nearblocks.io/txns/7aqpeLzVfuF2Q7bjLarxJDcxYquR2gYw1x4jg9EUEqMi) |
+
+**Silent seller.** The seller never answers; after the response deadline the holder is refunded.
+
+| Step | Transaction |
+| --- | --- |
+| create_listing (Atelier Ama) | [`AgZSK4dtpV…`](https://testnet.near.rocks/tx/AgZSK4dtpVztZAzE6NfQWfAXhyLrXC3sStbb2mnB3HE3) · [NearBlocks](https://testnet.nearblocks.io/txns/AgZSK4dtpVztZAzE6NfQWfAXhyLrXC3sStbb2mnB3HE3) |
+| ft_transfer_call → receipt NFT minted to Bayo (receipt #41) | [`4CDM977sCk…`](https://testnet.near.rocks/tx/4CDM977sCk83zY1YQeGDXbr3c4kcAejDA5Tesu1Bhcvg) · [NearBlocks](https://testnet.nearblocks.io/txns/4CDM977sCk83zY1YQeGDXbr3c4kcAejDA5Tesu1Bhcvg) |
+| open_claim (Bayo) | [`FhHsgizxw2…`](https://testnet.near.rocks/tx/FhHsgizxw2xKSavusJFqqDbcAjN8NjPFNRMtEf8hQ8UR) · [NearBlocks](https://testnet.nearblocks.io/txns/FhHsgizxw2xKSavusJFqqDbcAjN8NjPFNRMtEf8hQ8UR) |
+| default_judgment → refund to holder | [`FvAUnfPXps…`](https://testnet.near.rocks/tx/FvAUnfPXpsg98UA2g1zqjhELbEqJ6ohuKGNX2YNRQVTE) · [NearBlocks](https://testnet.nearblocks.io/txns/FvAUnfPXpsg98UA2g1zqjhELbEqJ6ohuKGNX2YNRQVTE) |
+
+**Late parcel.** The holder extends the claim window once.
+
+| Step | Transaction |
+| --- | --- |
+| create_listing (Loom House) | [`hgdg4b3Kbe…`](https://testnet.near.rocks/tx/hgdg4b3KbeqXtr9uSCjbf6qgFWxMmkrNbs78u6wpHhQ) · [NearBlocks](https://testnet.nearblocks.io/txns/hgdg4b3KbeqXtr9uSCjbf6qgFWxMmkrNbs78u6wpHhQ) |
+| ft_transfer_call → receipt NFT minted to Ada (receipt #42) | [`2K36gQDScS…`](https://testnet.near.rocks/tx/2K36gQDScS1bMpdZ2rcL5vzM3VALBuuRWSSKJzjJTXCv) · [NearBlocks](https://testnet.nearblocks.io/txns/2K36gQDScS1bMpdZ2rcL5vzM3VALBuuRWSSKJzjJTXCv) |
+| extend_window (Ada) | [`HZv1guCaYT…`](https://testnet.near.rocks/tx/HZv1guCaYTmTurUxY47qbKGjLacaQ9PaRy2tCYgPjfj9) · [NearBlocks](https://testnet.nearblocks.io/txns/HZv1guCaYTmTurUxY47qbKGjLacaQ9PaRy2tCYgPjfj9) |
+
+</details>
+
+More explorer pages: [withdraw](https://testnet.near.rocks/tx/48hyDUsUEjGRY2Bpzq3gbZFPe1sDpmTR3mwU7GcKYeuv) · [resolve_review](https://testnet.near.rocks/tx/9BUakCspNrY4eSWHtMkREiDycDnBury3Qod54EUih5yA) · [default_judgment](https://testnet.near.rocks/tx/FvAUnfPXpsg98UA2g1zqjhELbEqJ6ohuKGNX2YNRQVTE) · [release_many](https://testnet.near.rocks/tx/DowAaP6WnQQrx9a1hx9XSVWVMHZbPF5VD3oJD5zTSH9x) · [extend_window](https://testnet.near.rocks/tx/HZv1guCaYTmTurUxY47qbKGjLacaQ9PaRy2tCYgPjfj9). Screenshots of these are in [`docs/images/proof`](docs/images/proof).
 <!-- evidence:end -->
 
 <details>
