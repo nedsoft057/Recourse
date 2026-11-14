@@ -194,9 +194,11 @@ Computed in the contract on every payment from the seller's record:
 
 The held share is the larger of the tier's share and the seller's own chosen minimum.
 
+Why a 50/50 split counts as a loss: a split means the seller's side of the story didn't hold up for at least half the money, so the order didn't go as promised. Refunding before a ruling is not a loss, which gives sellers a cheap way to settle honest mistakes. One unusual case can't hurt a small seller much: being placed under review needs at least 3 losses **and** a loss rate of 20% or more, and the worst a loss does before that is move a seller from Trusted to Established (more of each payment held, nothing confiscated).
+
 ### 4.6 Guarantees enforced in code (and tested)
 
-29 unit tests in `contract/src/tests.rs` check: payment must equal the price; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, reset their record or go below their tier; ruled money stays locked through the appeal window; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no double payouts; evidence is stored per side; tiers use finished orders; only the holder can extend, only once; collection waits for an extended window; buyer records count claims won and rejected; an appeal the reviewer never decides keeps the AI ruling.
+29 unit tests in `contract/src/tests.rs` check: payment must equal the price; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, reset their record or go below their tier; ruled money stays locked through the appeal window; appeals go to a human and are final; an overdue review of a case the AI couldn't decide refunds the holder; silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no double payouts; evidence is stored per side; tiers use finished orders; only the holder can extend, only once; collection waits for an extended window; buyer records count claims won and rejected; an appeal the reviewer never decides keeps the AI ruling.
 
 ---
 
@@ -304,12 +306,12 @@ Vercel deploys the web app from `main` on every push. Secrets (the testnet key a
 
 | Who | Trusted to | If they misbehave |
 | --- | --- | --- |
-| The backend and the judge account | Run the judge honestly and post only rulings the enclave produced | A fake ruling would fail the hash and signature checks on the case page, and the appeal window lets the other side take it to a human |
+| The backend and the judge account | Run the judge honestly and post only rulings the enclave produced | They could post a ruling the enclave never produced. The contract would accept it, because it trusts the judge account and does not check the enclave signature yet. What limits the damage: the case page recomputes the ruling hash from on-chain evidence, anyone can compare the stored chat ID and signing address with NEAR AI Cloud's attestation by hand, and no money moves until the appeal window closes, so the losing side can take it to a human |
 | The server's evidence key | Keep evidence private | The backend can read evidence |
 | The reviewer (contract owner) | Decide appeals and flagged cases fairly | Biased decisions; every decision and note is public on-chain |
 | The shared demo key | Let judges try every role without a wallet | Anyone with the key could act as any demo person (testnet only) |
 
-The contract itself never trusts the backend with money: it only accepts rulings from the judge account, never pays out a ruling before the appeal window, and always has a timeout so money is never stuck.
+This is a deliberate v1 tradeoff, not trustless AI arbitration. The contract itself never trusts the backend with money: it only accepts rulings from the judge account, never pays out a ruling before the appeal window, and always has a timeout so money is never stuck.
 
 ---
 

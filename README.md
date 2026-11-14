@@ -159,6 +159,8 @@ Everything in the proof section above runs on testnet today. These are the hones
 
 Recourse would earn a small fee on each protected payment, taken when the held part settles. That fee pays for what Recourse sponsors today for free: gas and contract storage for buyers and sellers, NEAR AI Cloud rulings, and the human review service. Sellers have a reason to stay: as their record improves, less of each payment is held and they're paid faster. Buyers pay only the item price. The demo charges no fee.
 
+**Who pays for human review.** The fee does, pooled across all protected payments. Costs are lopsided by design: most orders finish with no claim and cost only gas and storage; most claims end with an AI ruling, which is two short model calls; a person is needed only when a side appeals or the AI can't decide. If appeals turn out to be expensive or frequent, the plan is a small appeal deposit, returned when the appeal changes the ruling. No fee level is set yet: it should come from real costs per case once there is volume, and this hackathon build hasn't measured them.
+
 ## The problems
 
 There are a few plain human problems underneath this product.
@@ -350,13 +352,15 @@ stateDiagram-v2
 
 **Buyer claim records.** The contract counts each account's claims: opened, won (decided at least half for the buyer, or refunded by the seller) and rejected. Sellers see the record on the case page; the judge gets it in the case file, under policy rule 7: context only, never decisive, and no penalty for a first claim.
 
-**Seller tiers** are computed in the contract on every payment. Loss rate = lost disputes ÷ finished orders (finished means settled, voluntarily refunded or finally ruled). A seller with no finished orders is New, so there's never a division by zero. Flagging needs at least 3 losses, so one bad case can't flag a small seller. A seller can raise their own held share but never set it below their tier.
+**Seller tiers** are computed in the contract on every payment. Loss rate = lost disputes ÷ finished orders (finished means settled, voluntarily refunded or finally ruled). A seller with no finished orders is New, so there's never a division by zero. A dispute counts as lost when the buyer gets at least half the held money. A seller can raise their own held share but never set it below their tier.
+
+Why a 50/50 split counts as a loss: a split means the seller's side of the story didn't hold up for at least half the money, so the order didn't go as promised. Refunding before a ruling is not a loss, which gives sellers a cheap way to settle honest mistakes. One unusual case can't hurt a small seller much: being placed under review needs at least 3 losses **and** a loss rate of 20% or more, and the worst a loss does before that is move a seller from Trusted to Established (more of each payment held, nothing confiscated).
 
 ## What is trusted (and what a v2 removes)
 
 | Role | Trusted to | Worst case | v2 |
 | --- | --- | --- | --- |
-| Backend and judge account | Run the judge honestly and post only rulings the enclave produced | A fake ruling. Its hash would not match the evidence on the case page, the signature would not match NEAR AI Cloud's attestation, and the appeal window gives the other side time to appeal. Nothing on-chain checks the signature yet | Verify the enclave signature inside the contract against a registered enclave key |
+| Backend and judge account | Run the judge honestly and post only rulings the enclave produced | A ruling the enclave never produced. The contract would accept it, since it trusts the judge account and checks no signature yet. The case page recomputes the hash from on-chain evidence, the signature can be checked against NEAR AI Cloud's attestation by hand, and no money moves before the appeal window closes | Verify the enclave signature inside the contract against a registered enclave key |
 | Evidence encryption | Keep evidence and evidence files private (AES-256-GCM with a server key; the claim records only the hash, and each file's fingerprint is inside the encrypted evidence) | The backend can read evidence | Encrypt in the browser to the enclave's key, and let a vision model in the enclave read photos |
 | Reviewer (contract owner) | Decide appeals and flagged cases fairly | Biased decisions | A panel of staked reviewers, or a second independent model |
 | Demo accounts | All demo people share one testnet key, so you can try every role without a wallet | Anyone with the key can act as any demo person | Real accounts: connect a NEAR wallet (Wallet Selector) or sign in with Google and get an account created for you (the flow in "How it works for real users") |
