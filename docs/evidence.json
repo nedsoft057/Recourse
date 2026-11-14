@@ -1,0 +1,190 @@
+{
+  "site": "https://recourse-market.vercel.app",
+  "contract": "pay.favour-recourse.testnet",
+  "token": "usdc.favour-recourse.testnet",
+  "ran_at": "2026-11-14T19:13:13.128Z",
+  "scenarios": [
+    {
+      "name": "Clean sale",
+      "what": "Buyer pays, nobody claims, the seller collects the held part after the window and withdraws.",
+      "steps": [
+        {
+          "step": "create_listing (Loom House)",
+          "hash": "HprDoFwZ6ArVvfTuM4SdcLbGqhxixgacW4b5P9gVVbgA",
+          "listing": 47
+        },
+        {
+          "step": "ft_transfer_call → receipt NFT minted to Ada",
+          "hash": "31M7wsUuAsuZiweLaxcTty5RHWp17dVeidex5zH8xGfB",
+          "token": "37"
+        },
+        {
+          "step": "release_many (seller collects after the window)",
+          "hash": "DowAaP6WnQQrx9a1hx9XSVWVMHZbPF5VD3oJD5zTSH9x"
+        },
+        {
+          "step": "withdraw (seller)",
+          "hash": "HPEooqVqy4Pw7SvYf3DuagahEeU85GU3i1sdEhuP49XU"
+        }
+      ]
+    },
+    {
+      "name": "Resale + damaged item",
+      "what": "Ada buys and passes the receipt to Bayo; Bayo claims with a photo; the AI judge refunds the current holder.",
+      "steps": [
+        {
+          "step": "create_listing (Field Kit)",
+          "hash": "2vGYDhvxiiriuE9z1fEwQT8mborLDWvmbKw48BpmPRwN",
+          "listing": 48
+        },
+        {
+          "step": "ft_transfer_call → receipt NFT minted to Ada",
+          "hash": "6Pzfjvwms5zSfWHDiZvt2daw6LPftc7G3mYBa6rGAcU2",
+          "token": "38"
+        },
+        {
+          "step": "nft_transfer → receipt passed to Bayo",
+          "hash": "HPBRCWGjyBzyVJPBC4vK9s18LpYWKAYrXsFPpJu7cum9"
+        },
+        {
+          "step": "upload evidence photo (encrypted, Vercel Blob)",
+          "hash": null,
+          "sha256": "1907cd728280489157d34418e976333dab0b765d43a9f61a5e44a2b7504773cd"
+        },
+        {
+          "step": "open_claim (Bayo, with photo)",
+          "hash": "2UMCcaqtWDBvy6EbchLvHmhoZeKYe8dBTJYVxFNz7aGx"
+        },
+        {
+          "step": "respond (seller) → AI judge on NEAR AI Cloud",
+          "hash": "EcJ6QqZ5bVe12qz4U7CTVuPiZ8S36Tw7sTdunrmiNyo"
+        },
+        {
+          "step": "AI ruling: Ruled: refund",
+          "hash": "9EgYnQLpco3TcodpqEbd1224mcEVRmVPNPgENANEN7Qq"
+        },
+        {
+          "step": "finalize (after the appeal window)",
+          "hash": "4Usoeqi6LENwx62cDWwgrn6jWPHPG4UuH7GHkEMc4TET"
+        },
+        {
+          "step": "withdraw (Bayo, the refund)",
+          "hash": "48hyDUsUEjGRY2Bpzq3gbZFPe1sDpmTR3mwU7GcKYeuv"
+        }
+      ]
+    },
+    {
+      "name": "Appeal to a human",
+      "what": "The seller appeals an AI ruling with a file; the reviewer decides a 50/50 split.",
+      "steps": [
+        {
+          "step": "create_listing (Field Kit)",
+          "hash": "AtmiaE2FHvC8hW4mdz4Ve95RDuJQ1mEDyXWq2gVKMPSn",
+          "listing": 49
+        },
+        {
+          "step": "ft_transfer_call → receipt NFT minted to Bayo",
+          "hash": "FpGKusFuvsbutjpDfz3fYZLcdvb56P9nxpGSQrWJbEg9",
+          "token": "39"
+        },
+        {
+          "step": "open_claim (Bayo)",
+          "hash": "Ef8m87K1NuY3K4vdCTzJWcQ7ZPBKuGZWHrfscuqKRUDS"
+        },
+        {
+          "step": "respond (seller) → AI judge",
+          "hash": "BiyUFbmqJTDcAcX6b2pXdHWW5rj6XQQ24LbzZ4j7Gd2p"
+        },
+        {
+          "step": "AI ruling: Ruled: refund",
+          "hash": "7CzweUvPX39F7FDr8hKDJnSvgPkdgLokjgYURLfeHtQk"
+        },
+        {
+          "step": "appeal (seller, with a file)",
+          "hash": "6q7UpZHpM4tfKubkv7tBCY4TuCNXK6EDsKyKzxasWhzu"
+        },
+        {
+          "step": "resolve_review (human reviewer: 50/50)",
+          "hash": "9BUakCspNrY4eSWHtMkREiDycDnBury3Qod54EUih5yA",
+          "appealed": true
+        }
+      ]
+    },
+    {
+      "name": "False claim",
+      "what": "The buyer says it never came; the seller shows tracking; the AI releases the money to the seller.",
+      "steps": [
+        {
+          "step": "create_listing (Atelier Ama)",
+          "hash": "8defVzj3moAnXfNHuUAPVbNPU4TSjBUxkznbaEy2UUwY",
+          "listing": 50
+        },
+        {
+          "step": "ft_transfer_call → receipt NFT minted to Ada",
+          "hash": "DhezkgUd87LwVv4hMGfd8fDpSgCDZy8FyMnJwaHM2xUZ",
+          "token": "40"
+        },
+        {
+          "step": "open_claim (Ada: never arrived)",
+          "hash": "6k3ZBhSAedEZpDhiSR6CKL9yGEiCLaMjSiS2xnzJ564k"
+        },
+        {
+          "step": "respond (seller, with tracking) → AI judge",
+          "hash": "DizNCHAyCoBeDLZkV5GxAvfbjPBB61FGsVuyCzJcb57K"
+        },
+        {
+          "step": "AI ruling: Ruled: release",
+          "hash": "EwrRvbwrVnzEr7ouD9xKbdPiei4vamTwjRFyc3iHRCrP"
+        },
+        {
+          "step": "finalize (after the appeal window)",
+          "hash": "7aqpeLzVfuF2Q7bjLarxJDcxYquR2gYw1x4jg9EUEqMi"
+        }
+      ]
+    },
+    {
+      "name": "Silent seller",
+      "what": "The seller never answers; after the response deadline the holder is refunded.",
+      "steps": [
+        {
+          "step": "create_listing (Atelier Ama)",
+          "hash": "AgZSK4dtpVztZAzE6NfQWfAXhyLrXC3sStbb2mnB3HE3",
+          "listing": 51
+        },
+        {
+          "step": "ft_transfer_call → receipt NFT minted to Bayo",
+          "hash": "4CDM977sCk83zY1YQeGDXbr3c4kcAejDA5Tesu1Bhcvg",
+          "token": "41"
+        },
+        {
+          "step": "open_claim (Bayo)",
+          "hash": "FhHsgizxw2xKSavusJFqqDbcAjN8NjPFNRMtEf8hQ8UR"
+        },
+        {
+          "step": "default_judgment → refund to holder",
+          "hash": "FvAUnfPXpsg98UA2g1zqjhELbEqJ6ohuKGNX2YNRQVTE"
+        }
+      ]
+    },
+    {
+      "name": "Late parcel",
+      "what": "The holder extends the claim window once.",
+      "steps": [
+        {
+          "step": "create_listing (Loom House)",
+          "hash": "hgdg4b3KbeqXtr9uSCjbf6qgFWxMmkrNbs78u6wpHhQ",
+          "listing": 52
+        },
+        {
+          "step": "ft_transfer_call → receipt NFT minted to Ada",
+          "hash": "2K36gQDScS1bMpdZ2rcL5vzM3VALBuuRWSSKJzjJTXCv",
+          "token": "42"
+        },
+        {
+          "step": "extend_window (Ada)",
+          "hash": "HZv1guCaYTmTurUxY47qbKGjLacaQ9PaRy2tCYgPjfj9"
+        }
+      ]
+    }
+  ]
+}
