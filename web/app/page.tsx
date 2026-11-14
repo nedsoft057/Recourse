@@ -52,7 +52,7 @@ export default function Landing() {
         </div>
         <div className="cloud-hero-text">
           <span className="glass-pill">Live on NEAR testnet, with an AI dispute judge</span>
-          <h1>Crypto payments, now with a chargeback.</h1>
+          <h1>A successful payment doesn&apos;t mean a successful purchase.</h1>
           <p>Make a protected payment link for anything you sell. Your buyer pays in USDC; part of it is held in their receipt until the order is right.</p>
           <div className="hero-actions">
             <StartDemo className="pill-btn dark" />

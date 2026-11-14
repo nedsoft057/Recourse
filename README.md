@@ -1,6 +1,6 @@
 # Recourse
 
-**Crypto payments, now with a chargeback.**
+**A successful payment doesn't mean a successful purchase.**
 
 Recourse turns any sale into a protected payment link. The buyer pays in USDC; part reaches the seller immediately and the rest is held in a **receipt NFT the buyer owns** until the claim window closes. If the order goes wrong, the buyer claims the held part back through a defined dispute process with an AI judge running in a NEAR AI Cloud TEE. If the buyer resells the item, they pass the receipt on and **the remaining protection travels with it**.
 
@@ -100,7 +100,7 @@ The demo runs on NEAR testnet with prepared accounts, so you don't need a wallet
 | # | Do this | You should see |
 | --- | --- | --- |
 | 0 | Short on time? On the landing page press **Try the 2-minute demo** | A step card at the bottom walks you through steps 2 to 6, switching people and filling in the forms for you. **See a decided case** opens a finished dispute straight away |
-| 1 | Open https://recourse-market.vercel.app | "Crypto payments, now with a chargeback." with **Try the 2-minute demo** and **See a decided case** |
+| 1 | Open https://recourse-market.vercel.app | "A successful payment doesn't mean a successful purchase." with **Try the 2-minute demo** and **See a decided case** |
 | 2 | Viewing as **Loom House**: **Create a link**. Enter an item and a price (e.g. 20), choose **5 min**, create | A live preview of the buyer's card while you type, then **Your link is ready**: the link, share buttons, a scannable QR code and the payout timeline (10 USDC now, 10 USDC when the window closes) |
 | 3 | Copy the link. Switch to **Ada**, open the link, press **Pay** | The receipt panel shows the split (50% to the seller now, 50% held), then "Paid. Receipt #N is yours" with a link to the transaction on NearBlocks |
 | 4 | **Purchases**: on the new receipt, **Pass on receipt** to Bayo | "Passed on to Bayo. The protection went with it." Switch to **Bayo**: the receipt is in his purchases, marked as passed on by Ada |
