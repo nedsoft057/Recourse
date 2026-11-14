@@ -1,5 +1,7 @@
 # Recourse
 
+[![Build and test](https://github.com/nedsoft057/recourse/actions/workflows/build-test.yml/badge.svg)](https://github.com/nedsoft057/recourse/actions/workflows/build-test.yml)
+
 **A successful payment doesn't mean a successful purchase.**
 
 Recourse turns any sale into a protected payment link. The buyer pays in USDC; part reaches the seller immediately and the rest is held in a **receipt NFT the buyer owns** until the claim window closes. If the order goes wrong, the buyer claims the held part back through a defined dispute process with an AI judge running in a NEAR AI Cloud TEE. If the buyer resells the item, they pass the receipt on and **the remaining protection travels with it**.
@@ -197,16 +199,37 @@ The 28 unit tests in [`contract/src/tests.rs`](contract/src/tests.rs) cover: pay
 ## Run it yourself
 
 ```bash
-# Contracts: tests and wasm
+# Contracts: 28 unit tests for the Recourse contract, then the wasm
 cargo test --workspace
-cd contract && cargo near build non-reproducible-wasm
+cd contract && cargo near build non-reproducible-wasm && cd ..
 
-# Web app
-cd web && npm install
-NEAR_MASTER_ACCOUNT=<your testnet account> NEAR_MASTER_KEY=<its key> NEARAI_API_KEY=<optional> npm run dev
+# Web app, reading the live testnet contract (no keys needed to browse)
+cd web && npm install && npm run dev      # http://localhost:3000
 ```
 
-To deploy your own copy, add `NEAR_TESTNET_MASTER_ACCOUNT` and `NEAR_TESTNET_MASTER_KEY` as GitHub Actions secrets and run **Deploy to testnet**. It creates every account, deploys both contracts, registers and approves the demo sellers, and seeds example links. The web app needs `NEAR_MASTER_ACCOUNT` and `NEAR_MASTER_KEY`, and optionally `NEARAI_API_KEY` and `NEARAI_MODEL`.
+With no environment variables the app reads `pay.favour-recourse.testnet` over public RPC, so every page, receipt and case renders. Actions that sign transactions need keys:
+
+| Variable | Needed for |
+| --- | --- |
+| `NEAR_MASTER_ACCOUNT`, `NEAR_MASTER_KEY` | Signing as the demo people (create links, pay, claim, rule). Point them at your own deployment |
+| `NEARAI_API_KEY` (optional `NEARAI_MODEL`) | The AI judge on NEAR AI Cloud. Without it, cases go to human review |
+| `BLOB_READ_WRITE_TOKEN` | Evidence file uploads (Vercel Blob). Without it, claims work with text only |
+
+To deploy your own copy, add `NEAR_TESTNET_MASTER_ACCOUNT` and `NEAR_TESTNET_MASTER_KEY` as GitHub Actions secrets and run **Deploy to testnet**. It creates every account, deploys both contracts, registers and approves the demo sellers, and seeds example links. **Live site check** runs a full purchase, resale, claim and ruling against the deployed app.
+
+## Where to check each claim
+
+| Claim | Where it's enforced |
+| --- | --- |
+| Part of each payment is held, by seller tier (50 / 30 / 15 / 100%) | `ft_on_transfer`, `tier_of` and `lock_bps_for` in `contract/src/lib.rs` |
+| Refund rights follow the receipt NFT | `execute` pays the current holder; transfers blocked during disputes (`nft_transfer` guard) |
+| Money never moves on an AI ruling before the appeal window | `post_ruling` stores the ruling only; `finalize` checks the appeal deadline |
+| One appeal, decided by a human; timeouts refund the holder | `appeal`, `resolve_review`, `review_timeout`, `default_judgment` |
+| The holder can extend the window once | `extend_window` |
+| Buyer claim records | `record_buyer`, `get_buyer` |
+| The AI judge runs twice and disagreements go to a human | `judge` in `web/lib/judge.ts` |
+| Evidence and files are encrypted; file fingerprints are on-chain | `web/lib/evidence.ts`, `web/lib/files.ts` |
+| Rulings are verifiable | `post_ruling` stores the hash, chat ID and signature; the case page recomputes the hash (`web/app/case/[token]/page.tsx`) |
 
 ## License
 
