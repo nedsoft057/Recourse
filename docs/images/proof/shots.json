@@ -1,0 +1,88 @@
+[
+  {
+    "name": "tx-purchase",
+    "url": "https://testnet.near.rocks/tx/6Pzfjvwms5zSfWHDiZvt2daw6LPftc7G3mYBa6rGAcU2",
+    "nearblocks": "https://testnet.nearblocks.io/txns/6Pzfjvwms5zSfWHDiZvt2daw6LPftc7G3mYBa6rGAcU2",
+    "caption": "ft_transfer_call: Ada pays 8 USDC; the contract splits it and mints receipt NFT #38 (nft_mint event)",
+    "ok": true
+  },
+  {
+    "name": "tx-transfer",
+    "url": "https://testnet.near.rocks/tx/HPBRCWGjyBzyVJPBC4vK9s18LpYWKAYrXsFPpJu7cum9",
+    "nearblocks": "https://testnet.nearblocks.io/txns/HPBRCWGjyBzyVJPBC4vK9s18LpYWKAYrXsFPpJu7cum9",
+    "caption": "nft_transfer: Ada passes receipt #38, and the protection, to Bayo",
+    "ok": true
+  },
+  {
+    "name": "tx-ruling",
+    "url": "https://testnet.near.rocks/tx/9EgYnQLpco3TcodpqEbd1224mcEVRmVPNPgENANEN7Qq",
+    "nearblocks": "https://testnet.nearblocks.io/txns/9EgYnQLpco3TcodpqEbd1224mcEVRmVPNPgENANEN7Qq",
+    "caption": "post_ruling from judge.favour-recourse.testnet: the AI ruling with its hash, chat ID and enclave signing address",
+    "ok": true
+  },
+  {
+    "name": "tx-withdraw",
+    "url": "https://testnet.near.rocks/tx/48hyDUsUEjGRY2Bpzq3gbZFPe1sDpmTR3mwU7GcKYeuv",
+    "nearblocks": "https://testnet.nearblocks.io/txns/48hyDUsUEjGRY2Bpzq3gbZFPe1sDpmTR3mwU7GcKYeuv",
+    "caption": "withdraw: Bayo, the new owner, takes out the refund in USDC",
+    "ok": true
+  },
+  {
+    "name": "tx-resolve",
+    "url": "https://testnet.near.rocks/tx/9BUakCspNrY4eSWHtMkREiDycDnBury3Qod54EUih5yA",
+    "nearblocks": "https://testnet.nearblocks.io/txns/9BUakCspNrY4eSWHtMkREiDycDnBury3Qod54EUih5yA",
+    "caption": "resolve_review: the human reviewer's final 50/50 decision on an appeal",
+    "ok": true
+  },
+  {
+    "name": "tx-default",
+    "url": "https://testnet.near.rocks/tx/FvAUnfPXpsg98UA2g1zqjhELbEqJ6ohuKGNX2YNRQVTE",
+    "nearblocks": "https://testnet.nearblocks.io/txns/FvAUnfPXpsg98UA2g1zqjhELbEqJ6ohuKGNX2YNRQVTE",
+    "caption": "default_judgment: the seller never answered, so the holder was refunded",
+    "ok": true
+  },
+  {
+    "name": "tx-collect",
+    "url": "https://testnet.near.rocks/tx/DowAaP6WnQQrx9a1hx9XSVWVMHZbPF5VD3oJD5zTSH9x",
+    "nearblocks": "https://testnet.nearblocks.io/txns/DowAaP6WnQQrx9a1hx9XSVWVMHZbPF5VD3oJD5zTSH9x",
+    "caption": "release_many: no claim, the window closed, the seller collected",
+    "ok": true
+  },
+  {
+    "name": "tx-extend",
+    "url": "https://testnet.near.rocks/tx/HZv1guCaYTmTurUxY47qbKGjLacaQ9PaRy2tCYgPjfj9",
+    "nearblocks": "https://testnet.nearblocks.io/txns/HZv1guCaYTmTurUxY47qbKGjLacaQ9PaRy2tCYgPjfj9",
+    "caption": "extend_window: the buyer pushed the claim window back once",
+    "ok": true
+  },
+  {
+    "name": "case-resale",
+    "url": "https://recourse-market.vercel.app/case/38",
+    "caption": "Case #38: Bayo's claim with a photo, the AI ruling, and Verify this ruling",
+    "ok": true
+  },
+  {
+    "name": "case-appeal",
+    "url": "https://recourse-market.vercel.app/case/39",
+    "caption": "Case #39: the seller's appeal with a file, decided by the reviewer",
+    "ok": true
+  },
+  {
+    "name": "case-false",
+    "url": "https://recourse-market.vercel.app/case/40",
+    "caption": "Case #40: a false claim loses to proof of delivery",
+    "ok": true
+  },
+  {
+    "name": "case-silent",
+    "url": "https://recourse-market.vercel.app/case/41",
+    "caption": "Case #41: the seller stayed silent and the holder was refunded",
+    "ok": true
+  },
+  {
+    "name": "purchases-extended",
+    "url": "https://recourse-market.vercel.app/purchases",
+    "caption": "Ada's purchases: a receipt extended once, with View NFT",
+    "ok": true
+  }
+]
