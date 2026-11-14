@@ -1,6 +1,10 @@
 # Recourse
 
 [![Build and test](https://github.com/nedsoft057/recourse/actions/workflows/build-test.yml/badge.svg)](https://github.com/nedsoft057/recourse/actions/workflows/build-test.yml)
+![Contract tests](https://img.shields.io/badge/contract%20tests-28%20passing-2ea44f)
+![Network](https://img.shields.io/badge/NEAR-testnet-1A73E8)
+[![Live demo](https://img.shields.io/badge/demo-recourse--market.vercel.app-14161B)](https://recourse-market.vercel.app)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 **A successful payment doesn't mean a successful purchase.**
 
@@ -12,6 +16,56 @@ Recourse turns any sale into a protected payment link. The buyer pays in USDC; p
 - **Built for:** NEAR HACKATHON, November 2026
 - **Full architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Built by:** Favour ([@Favour_D_Crier](https://x.com/Favour_D_Crier))
+
+| Checkout: the split | Receipt NFT with the product photo | Claim with a voice note and a photo | The AI judge's ruling |
+| --- | --- | --- | --- |
+| ![Checkout](docs/images/checkout.jpg) | ![Receipt NFT](docs/images/receipt-nft.jpg) | ![Claim with evidence](docs/images/claim-evidence.jpg) | ![AI ruling](docs/images/ai-ruling.jpg) |
+| **Verify this ruling: hash, chat ID, enclave address** | **Reviewer opens the appeal's file** | **False claim: proof of delivery wins** | **Guided 2-minute demo** |
+| ![Verify](docs/images/verify.jpg) | ![Reviewer](docs/images/reviewer.jpg) | ![False claim](docs/images/false-claim.jpg) | ![Guided demo](docs/images/guided-demo.jpg) |
+
+Screens are from the live app on a phone, recorded by an automated browser in [`scripts/film.mjs`](scripts/film.mjs).
+
+<!-- evidence:start -->
+<!-- evidence:end -->
+
+<details>
+<summary><b>Contract test results</b> (28 passed, from the latest CI run)</summary>
+
+```
+running 28 tests
+test tests::cannot_finalize_inside_appeal_window - should panic ... ok
+test tests::appeal_can_carry_evidence ... ok
+test tests::appeal_goes_to_human_and_is_final ... ok
+test tests::buyer_record_counts_claims_won_and_lost ... ok
+test tests::merchant_can_raise_but_not_lower_lock_rate ... ok
+test tests::evidence_is_stored_per_side ... ok
+test tests::merchant_cannot_approve_itself - should panic ... ok
+test tests::holder_can_extend_window_once ... ok
+test tests::merchant_cannot_reregister_to_reset_record - should panic ... ok
+test tests::new_seller_payment_is_split_50_50 ... ok
+test tests::no_claims_after_window - should panic ... ok
+test tests::no_double_settlement - should panic ... ok
+test tests::other_tokens_are_rejected - should panic ... ok
+test tests::no_transfer_during_dispute - should panic ... ok
+test tests::pending_merchant_cannot_sell - should panic ... ok
+test tests::previous_owner_cannot_claim_after_resale - should panic ... ok
+test tests::receipt_nft_shows_the_product_photo ... ok
+test tests::relayer_pays_on_behalf_of_buyer ... ok
+test tests::release_after_window_pays_merchant ... ok
+test tests::release_waits_for_extended_window ... ok
+test tests::resold_receipt_refunds_new_holder ... ok
+test tests::seller_cannot_extend_window - should panic ... ok
+test tests::ruling_funds_stay_locked_until_appeal_window_closes ... ok
+test tests::tiers_use_finished_orders_as_denominator ... ok
+test tests::silent_merchant_loses_by_default ... ok
+test tests::window_extends_only_once - should panic ... ok
+test tests::unanswered_review_refunds_holder ... ok
+test tests::wrong_amount_is_rejected - should panic ... ok
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.31s
+```
+
+Tests marked `should panic` check that the contract refuses something (wrong amount, a claim after the window, a transfer during a dispute). Run them yourself with `cargo test --workspace`.
+</details>
 
 ## The problems
 
@@ -120,22 +174,51 @@ If the AI judge has no API key, or can't decide, step 6 sends the case to human 
 
 ## How it works
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Seller
+    actor Buyer as Buyer (Ada)
+    actor Next as New owner (Bayo)
+    participant R as Recourse contract
+    participant AI as AI judge (NEAR AI Cloud TEE)
+    actor Rev as Human reviewer
+    Seller->>R: create_listing (price, window)
+    Buyer->>R: ft_transfer_call(USDC, listing)
+    R-->>Seller: seller's share credited now
+    R-->>Buyer: receipt NFT minted (holds the rest)
+    Buyer->>Next: nft_transfer (resale, protection moves)
+    Next->>R: open_claim + encrypted evidence
+    Seller->>R: respond + encrypted evidence
+    R->>AI: case file (run twice)
+    AI-->>R: post_ruling (hash + enclave signature)
+    Note over R: money stays locked during the appeal window
+    Seller->>R: appeal (optional, once)
+    Rev->>R: resolve_review (final)
+    R-->>Next: refund / split / release, then withdraw
 ```
-Seller ──create_listing──▶ Recourse contract (NEAR testnet)
-                               │
-Buyer ──ft_transfer_call (USDC, msg={listing_id})──▶ ft_on_transfer
-                               │  splits by the seller's tier
-                               ├─ credits the seller's share to their balance
-                               ├─ keeps the held part in an escrow record
-                               └─ mints a receipt NFT (NEP-171) to the buyer
-                               │
-Holder ──open_claim (encrypted evidence)──▶ Disputed
-Seller ──respond (encrypted evidence)──▶ backend runs the AI judge
-                               │
-  NEAR AI Cloud TEE, run twice ─▶ post_ruling (hash + signed record) ─▶ Ruled
-                               │     or flag_for_review ─▶ UnderReview
-            appeal window ─────┤
-                 finalize ─────┴─▶ Refunded / Split / Settled ─▶ withdraw
+
+```mermaid
+stateDiagram-v2
+    [*] --> Locked: paid
+    Locked --> Settled: window closes, no claim (release)
+    Locked --> Refunded: seller refunds
+    Locked --> Disputed: holder claims
+    Disputed --> Refunded: seller silent (default_judgment)
+    Disputed --> Ruled: AI rules
+    Disputed --> UnderReview: AI unsure or runs disagree
+    Ruled --> Appealed: appeal within the window
+    Ruled --> Settled: finalize
+    Ruled --> Refunded: finalize
+    Ruled --> Split: finalize
+    Appealed --> Split: reviewer decides
+    Appealed --> Refunded: reviewer decides
+    Appealed --> Settled: reviewer decides
+    UnderReview --> Split: reviewer decides
+    UnderReview --> Refunded: reviewer decides or review times out
+    Settled --> [*]
+    Refunded --> [*]
+    Split --> [*]
 ```
 
 | Part | Where | What it does |

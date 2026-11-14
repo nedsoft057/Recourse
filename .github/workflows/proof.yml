@@ -1,0 +1,26 @@
+name: Screenshot the proof
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null && npm i playwright@1.49.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+      - run: |
+          cp scripts/proof.mjs /tmp/pw/ && cp -r docs /tmp/pw/ && cd /tmp/pw && node proof.mjs
+          mkdir -p $GITHUB_WORKSPACE/docs/images/proof && cp docs/images/proof/* $GITHUB_WORKSPACE/docs/images/proof/
+      - name: Commit the screenshots
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add docs/images/proof
+          git commit -m "Proof screenshots from NearBlocks and the live app" && git push
