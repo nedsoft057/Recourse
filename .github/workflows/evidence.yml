@@ -1,0 +1,21 @@
+name: Record live testnet evidence
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/evidence.mjs
+      - name: Commit the evidence
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add docs/evidence.json
+          git commit -m "Record live testnet evidence" && git push
