@@ -105,39 +105,40 @@ More explorer pages: [withdraw](https://testnet.near.rocks/tx/48hyDUsUEjGRY2Bpzq
 <!-- evidence:end -->
 
 <details>
-<summary><b>Contract test results</b> (28 passed, from the latest CI run)</summary>
+<summary><b>Contract test results</b> (29 passed, from the latest CI run)</summary>
 
 ```
-running 28 tests
-test tests::cannot_finalize_inside_appeal_window - should panic ... ok
+running 29 tests
 test tests::appeal_can_carry_evidence ... ok
+test tests::cannot_finalize_inside_appeal_window - should panic ... ok
 test tests::appeal_goes_to_human_and_is_final ... ok
 test tests::buyer_record_counts_claims_won_and_lost ... ok
 test tests::merchant_can_raise_but_not_lower_lock_rate ... ok
 test tests::evidence_is_stored_per_side ... ok
-test tests::merchant_cannot_approve_itself - should panic ... ok
 test tests::holder_can_extend_window_once ... ok
+test tests::merchant_cannot_approve_itself - should panic ... ok
 test tests::merchant_cannot_reregister_to_reset_record - should panic ... ok
 test tests::new_seller_payment_is_split_50_50 ... ok
 test tests::no_claims_after_window - should panic ... ok
 test tests::no_double_settlement - should panic ... ok
 test tests::other_tokens_are_rejected - should panic ... ok
-test tests::no_transfer_during_dispute - should panic ... ok
 test tests::pending_merchant_cannot_sell - should panic ... ok
-test tests::previous_owner_cannot_claim_after_resale - should panic ... ok
+test tests::no_transfer_during_dispute - should panic ... ok
 test tests::receipt_nft_shows_the_product_photo ... ok
+test tests::previous_owner_cannot_claim_after_resale - should panic ... ok
 test tests::relayer_pays_on_behalf_of_buyer ... ok
 test tests::release_after_window_pays_merchant ... ok
 test tests::release_waits_for_extended_window ... ok
 test tests::resold_receipt_refunds_new_holder ... ok
-test tests::seller_cannot_extend_window - should panic ... ok
 test tests::ruling_funds_stay_locked_until_appeal_window_closes ... ok
+test tests::seller_cannot_extend_window - should panic ... ok
 test tests::tiers_use_finished_orders_as_denominator ... ok
 test tests::silent_merchant_loses_by_default ... ok
-test tests::window_extends_only_once - should panic ... ok
 test tests::unanswered_review_refunds_holder ... ok
+test tests::window_extends_only_once - should panic ... ok
+test tests::unanswered_appeal_keeps_the_ai_ruling ... ok
 test tests::wrong_amount_is_rejected - should panic ... ok
-test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.31s
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.12s
 ```
 
 Tests marked `should panic` check that the contract refuses something (wrong amount, a claim after the window, a transfer during a dispute). Run them yourself with `cargo test --workspace`.
