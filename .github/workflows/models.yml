@@ -6,4 +6,9 @@ jobs:
   models:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -s https://cloud-api.near.ai/v1/models | jq -c '.data[]? | {id, m: (.architecture // .modalities // .input_modalities // null)}' ; curl -s https://cloud-api.near.ai/v1/model/list | head -c 6000
+      - name: list
+        run: |
+          curl -s https://cloud-api.near.ai/v1/models > m.json
+          jq -r '.data[]?.id' m.json
+          echo ----
+          head -c 8000 m.json
