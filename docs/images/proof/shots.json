@@ -1,0 +1,81 @@
+[
+  {
+    "name": "nft-receipt",
+    "url": "https://testnet.nearblocks.io/nft-token/pay.favour-recourse.testnet/38",
+    "caption": "Receipt NFT #38 on NearBlocks: the product photo, now owned by Bayo after the resale",
+    "ok": false,
+    "error": "locator.waitFor: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText('Recourse Receipts').first() to be visible\n"
+  },
+  {
+    "name": "tx-transfer",
+    "url": "https://testnet.nearblocks.io/txns/HPBRCWGjyBzyVJPBC4vK9s18LpYWKAYrXsFPpJu7cum9",
+    "caption": "nft_transfer: Ada passes the receipt (and the protection) to Bayo",
+    "ok": false,
+    "error": "locator.waitFor: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText('HPBRCWGjyB').first() to be visible\n"
+  },
+  {
+    "name": "tx-ruling",
+    "url": "https://testnet.nearblocks.io/txns/9EgYnQLpco3TcodpqEbd1224mcEVRmVPNPgENANEN7Qq",
+    "caption": "post_ruling from judge.favour-recourse.testnet: the AI ruling recorded with its hash and enclave signature",
+    "ok": false,
+    "error": "locator.waitFor: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText('9EgYnQLpco').first() to be visible\n"
+  },
+  {
+    "name": "tx-resolve",
+    "url": "https://testnet.nearblocks.io/txns/9BUakCspNrY4eSWHtMkREiDycDnBury3Qod54EUih5yA",
+    "caption": "resolve_review: the human reviewer's final 50/50 decision on an appeal",
+    "ok": false,
+    "error": "locator.waitFor: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText('9BUakCspNr').first() to be visible\n"
+  },
+  {
+    "name": "tx-default",
+    "url": "https://testnet.nearblocks.io/txns/FvAUnfPXpsg98UA2g1zqjhELbEqJ6ohuKGNX2YNRQVTE",
+    "caption": "default_judgment: the seller never answered, so the holder was refunded",
+    "ok": false,
+    "error": "locator.waitFor: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText('FvAUnfPXps').first() to be visible\n"
+  },
+  {
+    "name": "tx-collect",
+    "url": "https://testnet.nearblocks.io/txns/DowAaP6WnQQrx9a1hx9XSVWVMHZbPF5VD3oJD5zTSH9x",
+    "caption": "release_many: no claim, the window closed, the seller collected",
+    "ok": false,
+    "error": "locator.waitFor: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText('DowAaP6WnQ').first() to be visible\n"
+  },
+  {
+    "name": "tx-extend",
+    "url": "https://testnet.nearblocks.io/txns/HZv1guCaYTmTurUxY47qbKGjLacaQ9PaRy2tCYgPjfj9",
+    "caption": "extend_window: the buyer pushed the claim window back once",
+    "ok": false,
+    "error": "locator.waitFor: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText('HZv1guCaYT').first() to be visible\n"
+  },
+  {
+    "name": "case-resale",
+    "url": "https://recourse-market.vercel.app/case/38",
+    "caption": "Case #38: Bayo's claim with a photo, the AI ruling, and Verify this ruling",
+    "ok": true
+  },
+  {
+    "name": "case-appeal",
+    "url": "https://recourse-market.vercel.app/case/39",
+    "caption": "Case #39: the seller's appeal with a file, decided by the reviewer",
+    "ok": true
+  },
+  {
+    "name": "case-false",
+    "url": "https://recourse-market.vercel.app/case/40",
+    "caption": "Case #40: a false claim loses to proof of delivery",
+    "ok": true
+  },
+  {
+    "name": "case-silent",
+    "url": "https://recourse-market.vercel.app/case/41",
+    "caption": "Case #41: the seller stayed silent and the holder was refunded",
+    "ok": true
+  },
+  {
+    "name": "purchases-extended",
+    "url": "https://recourse-market.vercel.app/purchases",
+    "caption": "Ada's purchases: a receipt extended once, with View NFT",
+    "ok": true
+  }
+]
