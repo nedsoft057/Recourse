@@ -15,19 +15,18 @@ const shots = [];
 
 const browser = await chromium.launch();
 
-async function nearblocks(name, url, waitText, caption) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 1150 }, deviceScaleFactor: 1 });
+async function explorer(name, hash, caption) {
+  const url = `https://testnet.near.rocks/tx/${hash}`;
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1000 }, deviceScaleFactor: 1 });
   try {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
-    await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
-    await page.getByText(waitText, { exact: false }).first().waitFor({ timeout: 45000 });
-    await page.waitForTimeout(4000);
-    for (const label of ["Accept", "Got it", "I agree"]) await page.getByRole("button", { name: label }).first().click({ timeout: 1000 }).catch(() => {});
-    await page.screenshot({ path: `${OUT}/${name}.jpg`, type: "jpeg", quality: 82 });
-    shots.push({ name, url, caption, ok: true });
+    await page.getByText("Receipts", { exact: false }).first().waitFor({ timeout: 45000 });
+    await page.waitForTimeout(5000);
+    const h = await page.evaluate(() => document.documentElement.scrollHeight);
+    await page.screenshot({ path: `${OUT}/${name}.jpg`, type: "jpeg", quality: 85, fullPage: true, clip: { x: 60, y: 60, width: 1160, height: Math.min(1500, h - 60) } });
+    shots.push({ name, url, nearblocks: `${NB}/txns/${hash}`, caption, ok: true });
     console.log("ok", name);
   } catch (e) {
-    await page.screenshot({ path: `${OUT}/${name}.jpg`, type: "jpeg", quality: 82 }).catch(() => {});
     shots.push({ name, url, caption, ok: false, error: e.message.slice(0, 160) });
     console.log("FAILED", name, e.message.slice(0, 160));
   }
@@ -60,13 +59,16 @@ const dflt = step("Silent seller", /default_judgment/).hash;
 const collect = step("Clean sale", /release_many/).hash;
 const extend = step("Late parcel", /extend_window/).hash;
 
-await nearblocks("nft-receipt", `${NB}/nft-token/${C}/${t38}`, "Recourse Receipts", `Receipt NFT #${t38} on NearBlocks: the product photo, now owned by Bayo after the resale`);
-await nearblocks("tx-transfer", `${NB}/txns/${transfer}`, transfer.slice(0, 10), "nft_transfer: Ada passes the receipt (and the protection) to Bayo");
-await nearblocks("tx-ruling", `${NB}/txns/${ruling}`, ruling.slice(0, 10), "post_ruling from judge.favour-recourse.testnet: the AI ruling recorded with its hash and enclave signature");
-await nearblocks("tx-resolve", `${NB}/txns/${resolve}`, resolve.slice(0, 10), "resolve_review: the human reviewer's final 50/50 decision on an appeal");
-await nearblocks("tx-default", `${NB}/txns/${dflt}`, dflt.slice(0, 10), "default_judgment: the seller never answered, so the holder was refunded");
-await nearblocks("tx-collect", `${NB}/txns/${collect}`, collect.slice(0, 10), "release_many: no claim, the window closed, the seller collected");
-await nearblocks("tx-extend", `${NB}/txns/${extend}`, extend.slice(0, 10), "extend_window: the buyer pushed the claim window back once");
+const purchase = step("Resale + damaged item", /ft_transfer_call/).hash;
+const withdraw = step("Resale + damaged item", /withdraw/).hash;
+await explorer("tx-purchase", purchase, `ft_transfer_call: Ada pays 8 USDC; the contract splits it and mints receipt NFT #${t38} (nft_mint event)`);
+await explorer("tx-transfer", transfer, `nft_transfer: Ada passes receipt #${t38}, and the protection, to Bayo`);
+await explorer("tx-ruling", ruling, "post_ruling from judge.favour-recourse.testnet: the AI ruling with its hash, chat ID and enclave signing address");
+await explorer("tx-withdraw", withdraw, "withdraw: Bayo, the new owner, takes out the refund in USDC");
+await explorer("tx-resolve", resolve, "resolve_review: the human reviewer's final 50/50 decision on an appeal");
+await explorer("tx-default", dflt, "default_judgment: the seller never answered, so the holder was refunded");
+await explorer("tx-collect", collect, "release_many: no claim, the window closed, the seller collected");
+await explorer("tx-extend", extend, "extend_window: the buyer pushed the claim window back once");
 
 await app("case-resale", `/case/${t38}`, "buyer-b", `Case #${t38}: Bayo's claim with a photo, the AI ruling, and Verify this ruling`);
 await app("case-appeal", `/case/${tok("Appeal to a human")}`, "reviewer", `Case #${tok("Appeal to a human")}: the seller's appeal with a file, decided by the reviewer`);
