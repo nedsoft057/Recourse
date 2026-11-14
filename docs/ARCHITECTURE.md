@@ -322,3 +322,4 @@ This is a deliberate v1 tradeoff, not trustless AI arbitration. The contract its
 - Paying from other chains through NEAR Intents.
 - Checking the enclave signature inside the contract, and encrypting evidence in the browser to the enclave's key.
 - Notifications by email or chat.
+- A fee on each protected payment, taken when the held part settles, to pay for gas, storage, AI rulings and human review (the demo charges nothing). If appeals turn out costly or frequent, a small appeal deposit, returned when the appeal changes the ruling. No fee level is set until real costs per case are measured.
