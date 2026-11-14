@@ -1,0 +1,9 @@
+name: List AI models
+on:
+  push:
+    paths: [".github/smoke/models"]
+jobs:
+  models:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -s https://cloud-api.near.ai/v1/models | jq -c '.data[]? | {id, m: (.architecture // .modalities // .input_modalities // null)}' ; curl -s https://cloud-api.near.ai/v1/model/list | head -c 6000
