@@ -1,7 +1,7 @@
 # Recourse
 
 [![Build and test](https://github.com/nedsoft057/recourse/actions/workflows/build-test.yml/badge.svg)](https://github.com/nedsoft057/recourse/actions/workflows/build-test.yml)
-![Contract tests](https://img.shields.io/badge/contract%20tests-28%20passing-2ea44f)
+![Contract tests](https://img.shields.io/badge/contract%20tests-29%20passing-2ea44f)
 ![Network](https://img.shields.io/badge/NEAR-testnet-1A73E8)
 [![Live demo](https://img.shields.io/badge/demo-recourse--market.vercel.app-14161B)](https://recourse-market.vercel.app)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -143,6 +143,21 @@ test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 Tests marked `should panic` check that the contract refuses something (wrong amount, a claim after the window, a transfer during a dispute). Run them yourself with `cargo test --workspace`.
 </details>
 
+## What works today, and what doesn't yet
+
+Everything in the proof section above runs on testnet today. These are the honest limits of the current version:
+
+- **The AI judge reads text, not files.** It sees each side's written statement and the names and types of attached files. Photos, voice notes and documents are opened only by the human reviewer.
+- **Enclave signatures are stored, not enforced.** Each AI ruling records NEAR AI Cloud's chat ID, signing address and signature reference, and the case page recomputes the ruling hash. Nothing yet verifies the signature cryptographically, in the contract or in the page; that's the first v2 item.
+- **Evidence is encrypted with a server key.** Stored evidence and files are unreadable on their own (AES-256-GCM), but Recourse's backend holds the key. Encrypting in the browser to the enclave's key is v2.
+- **Demo accounts share one key.** The site signs for whichever demo person you pick. Real wallets and Google sign-in are v2.
+- **Testnet and test USDC only.** Paying from other chains through NEAR Intents is designed, not built.
+- **Established (30%) and Trusted (15%) tiers** need 5 and 20 finished orders, so they're proven by unit tests rather than by the live run.
+
+## Business model (plan)
+
+Recourse would earn a small fee on each protected payment, taken when the held part settles. That fee pays for what Recourse sponsors today for free: gas and contract storage for buyers and sellers, NEAR AI Cloud rulings, and the human review service. Sellers have a reason to stay: as their record improves, less of each payment is held and they're paid faster. Buyers pay only the item price. The demo charges no fee.
+
 ## The problems
 
 There are a few plain human problems underneath this product.
@@ -192,7 +207,7 @@ The most common question: *why can the seller get paid if the buyer never confir
 
 ## How it works for real users
 
-The live demo uses prepared testnet accounts so judges can try every role in minutes. This is the product as a real buyer and seller would use it.
+> **Planned (v2), not in the live demo.** The demo uses prepared testnet accounts so judges can try every role in minutes. This section is the product as real buyers and sellers would use it; Google sign-in and wallet connection are not built yet.
 
 ### Signing in
 
@@ -310,7 +325,7 @@ stateDiagram-v2
 
 - **NEP-171 NFTs that hold funds.** Each receipt is a standard NFT, transferable from any NEAR wallet, and it's the only key to the held money. Refunds always go to the current holder.
 - **NEP-141 `ft_transfer_call`.** Payment and order in one transaction; any mismatch makes the token contract refund the buyer automatically.
-- **NEAR AI Cloud (TEE inference).** The judge runs an open-weight model inside NEAR AI Cloud's confidential environment. Each ruling stores the model, the chat ID, and the enclave's signing address and signature, so anyone can check the answer came from an attested enclave.
+- **NEAR AI Cloud (TEE inference).** The judge runs an open-weight model inside NEAR AI Cloud's confidential environment. Each ruling stores the model, the chat ID, and the enclave's signing address and signature, and the case page recomputes the ruling hash from on-chain data. Checking that signature against NEAR AI Cloud's attestation report is a manual step today (the case page links to it); verifying it inside the contract is v2. The contract does not yet require a signature: it trusts the judge account to post only enclave rulings.
 - **Sub-accounts and named accounts.** Every demo role is a named sub-account of one testnet account.
 - **Storage sponsorship.** `add_storage_for` lets the platform prepay contract storage for its sellers.
 
@@ -328,9 +343,9 @@ stateDiagram-v2
 
 **A case goes to a human reviewer when:** NEAR AI Cloud is unavailable; an answer fails the schema twice; the model says "inconclusive"; the two runs disagree (on the decision, or by more than 10 points on the buyer's share); or either run reports an attempt to manipulate it through the evidence.
 
-**Money never moves on an AI ruling directly.** It stays locked through the appeal window, and `finalize` carries out the ruling afterwards. One appeal per ruling, decided by a human, and human decisions are final. If a review isn't decided in time, `review_timeout` refunds the holder. If the seller never responds, `default_judgment` refunds the holder.
+**Money never moves on an AI ruling directly.** It stays locked through the appeal window, and `finalize` carries out the ruling afterwards. One appeal per ruling, decided by a human, and human decisions are final. If a review isn't decided in time, `review_timeout` settles it without a person: an appealed AI ruling stands as it was (so a missed review can't overturn a decision for either side), and a case the AI couldn't decide refunds the holder. If the seller never responds, `default_judgment` refunds the holder.
 
-**Evidence files.** Claims, responses and appeals can carry up to 5 files each (4 MB per file): photos, voice notes recorded in the browser or uploaded, videos, PDFs, documents and zips. Each file is encrypted on the server (AES-256-GCM) before it's stored in Vercel Blob, so the stored copy is unreadable on its own. The file's address, name, type, size and SHA-256 fingerprint go inside that side's encrypted evidence on-chain, so a file can't be swapped later: when it's opened, the server decrypts it and checks the fingerprint. Only the buyer, the seller and the reviewer can open files. The AI judge sees each file's name and type but can't open it, so under policy rule 8 it treats a described attachment as a claim, not proof, and weighs it with the rest of the evidence; when the two sides' files directly contradict each other and nothing else decides it, the case goes to a human reviewer, who can open everything.
+**Evidence files.** Claims, responses and appeals can carry up to 5 files each (4 MB per file): photos, voice notes recorded in the browser or uploaded, videos, PDFs, documents and zips. Each file is encrypted on the server (AES-256-GCM) before it's stored in Vercel Blob, so the stored copy is unreadable on its own. The file's address, name, type, size and SHA-256 fingerprint go inside that side's encrypted evidence on-chain, so a file can't be swapped later: when it's opened, the server decrypts it and checks the fingerprint. In the app, only the buyer, the seller and the reviewer can open files; the server holds the encryption key, so the backend itself can read evidence (see the trust table). The AI judge sees each file's name and type but can't open it, so under policy rule 8 it treats a described attachment as a claim, not proof, and weighs it with the rest of the evidence; when the two sides' files directly contradict each other and nothing else decides it, the case goes to a human reviewer, who can open everything.
 
 **Buyer claim records.** The contract counts each account's claims: opened, won (decided at least half for the buyer, or refunded by the seller) and rejected. Sellers see the record on the case page; the judge gets it in the case file, under policy rule 7: context only, never decisive, and no penalty for a first claim.
 
@@ -340,10 +355,10 @@ stateDiagram-v2
 
 | Role | Trusted to | Worst case | v2 |
 | --- | --- | --- | --- |
-| Backend and judge account | Run the judge honestly and post only rulings the enclave produced | A fake ruling. It would fail the hash and signature checks shown on the case page, and the appeal window gives the other side time to appeal | Verify the enclave signature inside the contract against a registered enclave key |
+| Backend and judge account | Run the judge honestly and post only rulings the enclave produced | A fake ruling. Its hash would not match the evidence on the case page, the signature would not match NEAR AI Cloud's attestation, and the appeal window gives the other side time to appeal. Nothing on-chain checks the signature yet | Verify the enclave signature inside the contract against a registered enclave key |
 | Evidence encryption | Keep evidence and evidence files private (AES-256-GCM with a server key; the claim records only the hash, and each file's fingerprint is inside the encrypted evidence) | The backend can read evidence | Encrypt in the browser to the enclave's key, and let a vision model in the enclave read photos |
 | Reviewer (contract owner) | Decide appeals and flagged cases fairly | Biased decisions | A panel of staked reviewers, or a second independent model |
-| Demo accounts | All demo people share one testnet key, so you can try every role without a wallet | Anyone with the key can act as any demo person | Real wallets via NEAR Wallet Selector |
+| Demo accounts | All demo people share one testnet key, so you can try every role without a wallet | Anyone with the key can act as any demo person | Real accounts: connect a NEAR wallet (Wallet Selector) or sign in with Google and get an account created for you (the flow in "How it works for real users") |
 
 Payments are testnet-only, in test USDC. Cross-chain payment through NEAR Intents 1-Click is designed but not wired in.
 
@@ -353,12 +368,12 @@ Write methods: `register_merchant`, `approve_merchant` / `suspend_merchant` (own
 
 View methods: `get_config`, `get_merchant`, `get_listing`, `get_listings`, `get_receipt`, `get_merchant_receipts`, `get_evidence`, `get_appeal_evidence`, `get_balance`, `get_buyer`, `nft_token`, `nft_tokens_for_owner`, `nft_metadata`.
 
-The 28 unit tests in [`contract/src/tests.rs`](contract/src/tests.rs) cover: payments must match the price exactly; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, re-register to reset their record, or lower their held share below their tier; ruling funds stay locked until the appeal window closes; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no paying out the same order twice; evidence is stored per side; tiers use finished orders as the denominator; the holder (and only the holder) can extend the window, once; collection waits for the extended window; buyer records count claims won and lost; receipt NFTs carry the product photo; appeals can carry evidence.
+The 29 unit tests in [`contract/src/tests.rs`](contract/src/tests.rs) cover: payments must match the price exactly; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, re-register to reset their record, or lower their held share below their tier; ruling funds stay locked until the appeal window closes; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no paying out the same order twice; evidence is stored per side; tiers use finished orders as the denominator; the holder (and only the holder) can extend the window, once; collection waits for the extended window; buyer records count claims won and lost; receipt NFTs carry the product photo; appeals can carry evidence; an appeal the reviewer never decides keeps the AI ruling.
 
 ## Run it yourself
 
 ```bash
-# Contracts: 28 unit tests for the Recourse contract, then the wasm
+# Contracts: 29 unit tests for the Recourse contract, then the wasm
 cargo test --workspace
 cd contract && cargo near build non-reproducible-wasm && cd ..
 
@@ -383,12 +398,12 @@ To deploy your own copy, add `NEAR_TESTNET_MASTER_ACCOUNT` and `NEAR_TESTNET_MAS
 | Part of each payment is held, by seller tier (50 / 30 / 15 / 100%) | `ft_on_transfer`, `tier_of` and `lock_bps_for` in `contract/src/lib.rs` |
 | Refund rights follow the receipt NFT | `execute` pays the current holder; transfers blocked during disputes (`nft_transfer` guard) |
 | Money never moves on an AI ruling before the appeal window | `post_ruling` stores the ruling only; `finalize` checks the appeal deadline |
-| One appeal, decided by a human; timeouts refund the holder | `appeal`, `resolve_review`, `review_timeout`, `default_judgment` |
+| One appeal, decided by a human; a missed review keeps the AI ruling; silent sellers refund the holder | `appeal`, `resolve_review`, `review_timeout`, `default_judgment` |
 | The holder can extend the window once | `extend_window` |
 | Buyer claim records | `record_buyer`, `get_buyer` |
 | The AI judge runs twice and disagreements go to a human | `judge` in `web/lib/judge.ts` |
 | Evidence and files are encrypted; file fingerprints are on-chain | `web/lib/evidence.ts`, `web/lib/files.ts` |
-| Rulings are verifiable | `post_ruling` stores the hash, chat ID and signature; the case page recomputes the hash (`web/app/case/[token]/page.tsx`) |
+| Rulings are checkable | `post_ruling` stores the hash, chat ID and signature reference; the case page recomputes the hash (`web/app/case/[token]/page.tsx`). The signature itself is not verified on-chain yet |
 
 ## License
 

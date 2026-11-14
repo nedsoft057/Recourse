@@ -466,3 +466,22 @@ fn appeal_can_carry_evidence() {
     assert_eq!(c.get_appeal_evidence(id.clone()), Some("sealed-files".into()));
     assert_eq!(status(&c, &id), Status::Appealed);
 }
+
+#[test]
+fn unanswered_appeal_keeps_the_ai_ruling() {
+    let mut c = setup();
+    let id = buy(&mut c, buyer(), 2_000);
+    ctx(buyer(), 3_000, 0);
+    c.open_claim(id.clone(), "not_delivered".into(), "hash-b".into(), "ct".into());
+    ctx(shop(), 4_000, 0);
+    c.respond(id.clone(), "hash-m".into(), "ct-m".into());
+    ctx(judge(), 5_000, 0);
+    // The AI rules for the seller; the buyer appeals; nobody reviews in time.
+    c.post_ruling(id.clone(), 0, "rh".into(), "att".into(), "{}".into());
+    ctx(buyer(), 6_000, 0);
+    c.appeal(id.clone(), "I disagree".into(), None);
+    ctx(acc("anyone.testnet"), 6_000 + 10 * MIN, 0);
+    c.review_timeout(id.clone());
+    assert_eq!(status(&c, &id), Status::Settled);
+    assert_eq!(c.get_balance(buyer()).0, 0);
+}

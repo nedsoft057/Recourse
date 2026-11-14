@@ -111,7 +111,7 @@ An `Escrow` holds: listing id, seller, original buyer, price, **locked** (held) 
           ▼                            ▼
         Ruled ──appeal──▶ Appealed ─▶ (reviewer: resolve_review) ─▶ Refunded / Split / Settled
           │                            ▲
-          │                     UnderReview ──(review deadline passes; review_timeout)─▶ Refunded
+          │                     UnderReview ──(review deadline passes; review_timeout)─▶ Refunded (Appealed: the AI ruling stands)
      finalize (after appeal window)
           ▼
    Refunded / Split / Settled
@@ -160,7 +160,7 @@ Settled, Refunded and Split are final. A receipt **cannot be transferred** while
 | `appeal(id, reason, evidence?)` | the holder or the seller, inside the appeal window, once | Status Appealed with a review deadline; optional encrypted evidence for the reviewer |
 | `finalize(id)` | anyone, after the appeal window, if not appealed | Carries out the AI ruling |
 | `resolve_review(id, buyer_bps, note_hash, note)` | owner (reviewer) only | Final human decision on an appealed or flagged case |
-| `review_timeout(id)` | anyone, after the review deadline | Full refund to the holder, so money is never stuck |
+| `review_timeout(id)` | anyone, after the review deadline | Settles without a person so money is never stuck: an appealed AI ruling stands; a flagged case (no ruling) refunds the holder |
 
 **Money out**
 
@@ -196,7 +196,7 @@ The held share is the larger of the tier's share and the seller's own chosen min
 
 ### 4.6 Guarantees enforced in code (and tested)
 
-28 unit tests in `contract/src/tests.rs` check: payment must equal the price; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, reset their record or go below their tier; ruled money stays locked through the appeal window; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no double payouts; evidence is stored per side; tiers use finished orders; only the holder can extend, only once; collection waits for an extended window; buyer records count claims won and rejected.
+29 unit tests in `contract/src/tests.rs` check: payment must equal the price; only the configured token is accepted; only approved sellers can sell; sellers can't approve themselves, reset their record or go below their tier; ruled money stays locked through the appeal window; appeals go to a human and are final; overdue reviews and silent sellers refund the holder; a resold receipt refunds the new holder and the previous owner can't claim; no transfers during a dispute; no claims after the window; no double payouts; evidence is stored per side; tiers use finished orders; only the holder can extend, only once; collection waits for an extended window; buyer records count claims won and rejected; an appeal the reviewer never decides keeps the AI ruling.
 
 ---
 
@@ -257,7 +257,7 @@ Lives in `web/lib/judge.ts` and runs right after the seller responds.
 4. **Twice.** The case runs twice in parallel. Each answer must parse as a strict JSON ruling (decision, buyer share, rule, reasons, manipulation flag).
 5. **Human review instead of a ruling** when: NEAR AI Cloud is unreachable or fails; an answer doesn't fit the format; either run says inconclusive; either run detects manipulation; or the two runs disagree on the decision or by more than 10 points of buyer share. The judge account calls `flag_for_review` with the reason.
 6. **Otherwise** the judge fetches the enclave's signature for the chat ID, hashes the ruling together with both evidence hashes, and calls `post_ruling` with the hash, the signature reference and a public details record (model, chat ID, signing address, reasons).
-7. **Verification.** The case page recomputes the hash from on-chain data and shows whether it matches, plus the chat ID and the enclave's signing address.
+7. **Verification.** The case page recomputes the hash from on-chain data and shows whether it matches, plus the chat ID and the enclave's signing address, with a link to NEAR AI Cloud's attestation report. The signature itself is not verified cryptographically yet, in the page or the contract; that is the first v2 item.
 
 The AI never moves money. Its ruling waits out the appeal window, and only `finalize` (or a human decision) pays out.
 
@@ -309,7 +309,7 @@ Vercel deploys the web app from `main` on every push. Secrets (the testnet key a
 | The reviewer (contract owner) | Decide appeals and flagged cases fairly | Biased decisions; every decision and note is public on-chain |
 | The shared demo key | Let judges try every role without a wallet | Anyone with the key could act as any demo person (testnet only) |
 
-The contract itself never trusts the backend with money: it only accepts rulings from the judge account, never pays out a ruling before the appeal window, and always has a timeout that refunds the holder.
+The contract itself never trusts the backend with money: it only accepts rulings from the judge account, never pays out a ruling before the appeal window, and always has a timeout so money is never stuck.
 
 ---
 

@@ -804,7 +804,15 @@ impl Recourse {
             now_ms() >= e.review.as_ref().unwrap().deadline,
             "Review deadline not reached"
         );
-        self.execute(&token_id, 10_000);
+        // An appealed AI ruling stands if the reviewer runs out of time, so a
+        // missed review can't overturn a decision for either side. A case the
+        // AI couldn't decide (flagged) has no ruling to fall back on, so the
+        // holder is refunded, as with a seller who never answers.
+        let buyer_bps = match (&e.status, &e.ruling) {
+            (Status::Appealed, Some(r)) => r.buyer_bps,
+            _ => 10_000,
+        };
+        self.execute(&token_id, buyer_bps);
     }
 
     // ------------------------------------------------------------ withdraw
